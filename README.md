@@ -54,38 +54,38 @@ $ api = require('mongoose-auto-api.rest')
 	* Parameters: `auth_token`
 	* Success: `{ status: 'ok', response: { message: 'Token verified.'}`
 	* Error: `{ status: 'error', response: { message: 'No token provided.'}}`
-  ## CRUD Routes
-  * "x" denotes collection name
-  	* I.E. */customer/insert?name=...?*
-  * `x/insert`
-    * Inserts record
-    * Success: `{attributes...}`
-    * Error: `{ name: "MongoError", code: 1050 }`
-  * `x/update, x/push, x/push_unique, x/set`
-    * `x/update` updates record
-    * `x/push` pushes comma separated records into list
-			* Records will be placed regardless if there is an existing matching record in the list
-		* `x/push_unique` pushes unique comma separated records into the list
-			* Only records that do not exist already will be placed in the list
-			* This **WILL NOT** delete existing duplicate records
-    * `x/set` sets list to comma separated records
-    * Primary key required
-    * Success: `{ n, nModified, ok }`
-  * `x/delete, x/delete_all`
-    * Deletes single record or all records, primary key required for *delete*
-    * Success: `{ n, deletedCount, ok }`
-  * `x/get`
-    * Gets single record
-    * Parameters: requires model primary key, i.e. `/user/get?username=bob`
-    * Success: `[{attributes...}]`
-  * `x/get_all`
-    * Gets all records
-    * Success: `[{attributes...}, {}...]`
-	* `x/schema`
-		* Gets schema information
-		* Success: `{ schema: [], primary_key, list_fields: [] }`
-  * `x/sterilize`
-    * Removes obsolete fields and indexes after updating schema
-    * Sets value for given field for all documents (useful for updating old documents after adding schema)
-    * Parameters: *field_name* corresponds to collection field name
+## CRUD Routes
+* "x" denotes collection name
+	* I.E. */customer/insert?name=...?*
+* `x/insert`
+	* Inserts record
+	* Success: `{attributes...}`
+	* Error: `{ name: "MongoError", code: 1050 }`
+* `x/update, x/push, x/push_unique, x/set`
+	* `x/update` updates record
+	* `x/push` pushes comma separated records into list
+		* Records will be placed regardless if there is an existing matching record in the list
+	* `x/push_unique` pushes unique comma separated records into the list
+		* Only records that do not exist already will be placed in the list
+		* This **WILL NOT** delete existing duplicate records
+	* `x/set` sets list to comma separated records
+	* Primary key required
+	* Success: `{ n, nModified, ok }`
+* `x/delete, x/delete_all`
+	* Deletes single record or all records, primary key required for *delete*
+	* Success: `{ n, deletedCount, ok }`
+* `x/get`
+	* Gets single record
+	* Parameters: requires model primary key, i.e. `/user/get?username=bob`
+	* Success: `[{attributes...}]`
+* `x/get_all`
+	* Gets all records
+	* Success: `[{attributes...}, {}...]`
+* `x/schema`
+	* Gets schema information
+	* Success: `{ schema: [], primary_key, list_fields: [] }`
+* `x/sterilize`
+	* Removes obsolete fields and indexes after updating schema
+	* Sets value for given field for all documents (useful for updating old documents after adding schema)
+	* Parameters: *field_name* corresponds to collection field name
 
