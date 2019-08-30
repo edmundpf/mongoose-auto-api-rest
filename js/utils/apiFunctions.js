@@ -78,10 +78,12 @@ allowedPassword = function(req, res) {
   passVal = validation.passVal(req.query.password, 'password');
   error = validation.joinValidations([userVal, passVal]);
   if (!error.valid) {
-    return res.status(401).json({
+    return {
       status: 'error',
       response: error
-    });
+    };
+  } else {
+    return true;
   }
 };
 
@@ -202,7 +204,7 @@ verifyToken = async function(req, res, next) {
       }
     });
   } else {
-    return jwt.verify(token, AUTH_TOKEN, function(error, decoded) {
+    jwt.verify(token, AUTH_TOKEN, function(error, decoded) {
       var currentTime, expiresIn, oneHour;
       currentTime = Math.round(Date.now() / 1000);
       expiresIn = 24 * 60 * 60;

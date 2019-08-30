@@ -247,7 +247,7 @@ app.all('/login', async(req, res) => {
 
 //: Sign Up
 app.all('/:path(signup)', verifyToken, async(req, res) => {
-  var key, key_match, response, token;
+  var isValid, key, key_match, response, token;
   try {
     if (req.query.secret_key != null) {
       key = (await secretKey.find({}));
@@ -257,7 +257,10 @@ app.all('/:path(signup)', verifyToken, async(req, res) => {
           return incorrectSecretKey(res);
         }
       }
-      allowedPassword(req, res);
+      isValid = allowedPassword(req, res);
+      if (isValid !== true) {
+        return res.status(401).json(isValid);
+      }
       response = (await userAuth.create(req.query));
       if (req.query.username === response.username) {
         token = signToken(response);
@@ -266,11 +269,12 @@ app.all('/:path(signup)', verifyToken, async(req, res) => {
           response: token
         });
       } else {
-        return res.status(401).json({
-          status: 'error',
-          response: response
-        });
+
       }
+      return res.status(401).json({
+        status: 'error',
+        response: response
+      });
     } else {
       return res.status(401).json({
         status: 'error',
@@ -290,7 +294,7 @@ app.all('/:path(signup)', verifyToken, async(req, res) => {
 
 //: Update Password
 app.all('/update_password', async(req, res) => {
-  var passMatch, passUpdate, user;
+  var isValid, passMatch, passUpdate, user;
   try {
     user = (await userAuth.findOne({
       username: req.query.username
@@ -305,7 +309,10 @@ app.all('/update_password', async(req, res) => {
     } else if (req.query.current_password == null) {
       return noCurrentPass(res);
     }
-    allowedPassword(req, res);
+    isValid = allowedPassword(req, res);
+    if (isValid !== true) {
+      return res.status(401).json(isValid);
+    }
     passUpdate = (await userAuth.updateOne({
       username: req.query.username
     }, objOmit(req.query, ['username'])));

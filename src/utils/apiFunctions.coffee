@@ -68,10 +68,12 @@ allowedPassword = (req, res) ->
 	)
 	error = validation.joinValidations([userVal, passVal])
 	if !error.valid
-		return res.status(401).json(
+		return(
 			status: 'error'
-			response: error)
-	return
+			response: error
+		)
+	else
+		return true
 
 #::: RESPONSE FUNCTIONS :::
 
@@ -185,10 +187,11 @@ verifyToken = (req, res, next) ->
 					)
 				else if currentTime < decoded.exp and currentTime + expiresIn > decoded.exp + oneHour
 					res.locals.refresh_token = signToken(decoded)
-					next()
+					return next()
 				else
-					next()
+					return next()
 		)
+	return
 
 #::: EXPORTS :::
 

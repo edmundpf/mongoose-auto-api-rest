@@ -4,6 +4,9 @@ assert = require('chai').assert
 should = require('chai').should()
 api = server = port = url = null
 
+USERNAME = 'user@email.com'
+PASSWORD1 = 'testPass1!'
+PASSWORD2 = 'testPass2!'
 SECRET_KEY = 'secretKeyTest'
 ACCESS_TOKEN = ''
 
@@ -118,7 +121,7 @@ describe 'Server Started', ->
 	it 'Server is on', ->
 		assert(api?)
 
-#: Check that signup endpoint is not yet protected
+#: Initialization/Admin Setup
 
 describe 'Admin setup', ->
 	it 'Init - Signup not protected', ->
@@ -162,9 +165,53 @@ describe 'Admin setup', ->
 		)
 
 	it 'Valid Signup', ->
-		res = await post("/signup?username=user@email.com&password=testPass1!&&secret_key=#{SECRET_KEY}")
+		res = await post("/signup?username=#{USERNAME}&password=#{PASSWORD1}&secret_key=#{SECRET_KEY}")
 		if res.response.access_token?
 			ACCESS_TOKEN = res.response.access_token
+		assert.equal(
+			res.status == 'ok' and
+			res.response.access_token?,
+			true
+		)
+
+#: Admin Validation
+
+describe 'Admin validation', ->
+	it 'No token', ->
+		res = await get('/verify_token')
+		errorAssert(
+			res,
+			'No token provided'
+		)
+
+	it 'Invalid token', ->
+		a.defaults.headers.common.authorization = ACCESS_TOKEN
+		res = await get('/verify_token?auth_token=invalidToken')
+		errorAssert
+
+	it 'Verify token', ->
+		res = await get('/verify_token')
+		okayAssert(
+			res,
+			'Token verified'
+		)
+
+	it 'Login - User not found', ->
+		res = await post("/login?username=fakeUser@email.com&password=fakePassword1!")
+		errorAssert(
+			res,
+			'User does not exist'
+		)
+
+	it 'Login - Invalid password', ->
+		res = await post("/login?username=#{USERNAME}&password=fakePassword1!")
+		errorAssert(
+			res,
+			'Incorrect username or password'
+		)
+
+	it 'Valid login', ->
+		res = await post("/login?username=#{USERNAME}&password=#{PASSWORD1}")
 		assert.equal(
 			res.status == 'ok' and
 			res.response.access_token?,

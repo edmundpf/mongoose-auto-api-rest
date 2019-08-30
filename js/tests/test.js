@@ -1,4 +1,4 @@
-var ACCESS_TOKEN, SECRET_KEY, a, api, assert, createAssert, errorAssert, errorCodeAssert, get, okayAssert, p, port, post, remove, request, server, should, url;
+var ACCESS_TOKEN, PASSWORD1, PASSWORD2, SECRET_KEY, USERNAME, a, api, assert, createAssert, errorAssert, errorCodeAssert, get, okayAssert, p, port, post, remove, request, server, should, url;
 
 a = require('axios');
 
@@ -9,6 +9,12 @@ assert = require('chai').assert;
 should = require('chai').should();
 
 api = server = port = url = null;
+
+USERNAME = 'user@email.com';
+
+PASSWORD1 = 'testPass1!';
+
+PASSWORD2 = 'testPass2!';
 
 SECRET_KEY = 'secretKeyTest';
 
@@ -122,7 +128,7 @@ describe('Server Started', function() {
   });
 });
 
-//: Check that signup endpoint is not yet protected
+//: Initialization/Admin Setup
 describe('Admin setup', function() {
   it('Init - Signup not protected', async function() {
     var res;
@@ -156,10 +162,45 @@ describe('Admin setup', function() {
   });
   return it('Valid Signup', async function() {
     var res;
-    res = (await post(`/signup?username=user@email.com&password=testPass1!&&secret_key=${SECRET_KEY}`));
+    res = (await post(`/signup?username=${USERNAME}&password=${PASSWORD1}&secret_key=${SECRET_KEY}`));
     if (res.response.access_token != null) {
       ACCESS_TOKEN = res.response.access_token;
     }
+    return assert.equal(res.status === 'ok' && (res.response.access_token != null), true);
+  });
+});
+
+//: Admin Validation
+describe('Admin validation', function() {
+  it('No token', async function() {
+    var res;
+    res = (await get('/verify_token'));
+    return errorAssert(res, 'No token provided');
+  });
+  it('Invalid token', async function() {
+    var res;
+    a.defaults.headers.common.authorization = ACCESS_TOKEN;
+    res = (await get('/verify_token?auth_token=invalidToken'));
+    return errorAssert;
+  });
+  it('Verify token', async function() {
+    var res;
+    res = (await get('/verify_token'));
+    return okayAssert(res, 'Token verified');
+  });
+  it('Login - User not found', async function() {
+    var res;
+    res = (await post("/login?username=fakeUser@email.com&password=fakePassword1!"));
+    return errorAssert(res, 'User does not exist');
+  });
+  it('Login - Invalid password', async function() {
+    var res;
+    res = (await post(`/login?username=${USERNAME}&password=fakePassword1!`));
+    return errorAssert(res, 'Incorrect username or password');
+  });
+  return it('Valid login', async function() {
+    var res;
+    res = (await post(`/login?username=${USERNAME}&password=${PASSWORD1}`));
     return assert.equal(res.status === 'ok' && (res.response.access_token != null), true);
   });
 });

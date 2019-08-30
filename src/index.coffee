@@ -301,7 +301,9 @@ app.all('/:path(signup)', verifyToken, (req, res) =>
 				if !key_match
 					return incorrectSecretKey(res)
 
-			allowedPassword(req, res)
+			isValid = allowedPassword(req, res)
+			if isValid != true
+				return res.status(401).json(isValid)
 			response = await userAuth.create(req.query)
 
 			if req.query.username == response.username
@@ -311,10 +313,10 @@ app.all('/:path(signup)', verifyToken, (req, res) =>
 					response: token
 				)
 			else
-				return res.status(401).json(
-					status: 'error'
-					response: response
-				)
+			return res.status(401).json(
+				status: 'error'
+				response: response
+			)
 
 		else
 			return res.status(401).json(
@@ -351,7 +353,9 @@ app.all('/update_password', (req, res) =>
 		else if !req.query.current_password?
 			return noCurrentPass(res)
 
-		allowedPassword(req, res)
+		isValid = allowedPassword(req, res)
+		if isValid != true
+			return res.status(401).json(isValid)
 		passUpdate = await userAuth.updateOne(
 			{ username: req.query.username },
 			objOmit(req.query, ['username'])
