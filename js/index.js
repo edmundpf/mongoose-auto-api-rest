@@ -1,4 +1,4 @@
-var allowedPassword, app, appRoutes, assert, bcrypt, cors, corsPort, databaseName, db, error, errorObj, express, incorrectSecretKey, incorrectUserOrPass, listMethods, listRoutes, models, mongoose, mongooseConnect, mongoosePort, noCurrentPass, normalMethods, normalRoutes, objOmit, p, responseFormat, routeMethods, schemaAsync, secretKey, serverConfig, serverPort, signToken, updateQuery, userAuth, userNotFound, verifyToken;
+var allowedPassword, app, appRoutes, assert, bcrypt, cors, corsPort, databaseName, db, defaultConfig, error, errorObj, express, incorrectSecretKey, incorrectUserOrPass, listMethods, listRoutes, models, mongoose, mongooseConnect, mongoosePort, noCurrentPass, normalMethods, normalRoutes, objOmit, p, responseFormat, routeMethods, schemaAsync, secretKey, serverConfig, serverPort, signToken, updateQuery, userAuth, userNotFound, verifyToken;
 
 cors = require('cors');
 
@@ -50,12 +50,22 @@ signToken = require('./utils/apiFunctions').signToken;
 
 verifyToken = require('./utils/apiFunctions').verifyToken;
 
+defaultConfig = {
+  serverPort: 4000,
+  webPort: 3000,
+  mongoosePort: 27017,
+  databaseName: "default_database",
+  siteTitle: "Default Title",
+  siteDesc: "Default Description",
+  hiddenFields: ["_id", "uid", "__v"]
+};
+
 try {
   serverConfig = require('../../../appConfig.json');
 } catch (error1) {
   error = error1;
-  p.error('Could not load app config file.');
-  process.exit(1);
+  serverConfig = defaultConfig;
+  p.warning('Could not load app config file, using default configuration.');
 }
 
 serverPort = serverConfig.serverPort || process.env.PORT;
@@ -385,4 +395,7 @@ app.all('/verify_token', verifyToken, (req, res) => {
 });
 
 //: Exports
-module.exports = app;
+module.exports = {
+  app: app,
+  config: serverConfig
+};

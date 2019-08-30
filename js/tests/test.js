@@ -33,8 +33,8 @@ before(function(done) {
   if (!fs.existsSync('./models/customer.js')) {
     fs.writeFileSync('./models/customer.js', `module.exports = ${customerModel}`);
   }
-  api = require('../index');
-  port = require('../../../../appConfig.json').serverPort;
+  api = require('../index').app;
+  port = require('../index').config.serverPort;
   url = `http://localhost:${port}`;
   return done();
 });
@@ -404,6 +404,12 @@ describe('API Methods', function() {
 
 // Cleanup
 after(function(done) {
+  if (fs.existsSync('./models/customer.js')) {
+    fs.unlinkSync('./models/customer.js');
+  }
+  if (fs.existsSync('./models')) {
+    fs.rmdirSync('./models');
+  }
   done();
   return process.exit(0);
 });

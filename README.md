@@ -10,6 +10,6 @@
 * [Model Setup - mongoose-auto-api.info](https://github.com/edmundpf/mongoose-auto-api-info/blob/master/README.md#model-setup)
 
 ## Usage
-``` javascript
-models = require('mongoose-auto-api.rest')
+``` bash
+$ npm run start
 ```

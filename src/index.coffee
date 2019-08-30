@@ -26,11 +26,25 @@ noCurrentPass = require('./utils/apiFunctions').noCurrentPass
 signToken = require('./utils/apiFunctions').signToken
 verifyToken = require('./utils/apiFunctions').verifyToken
 
+defaultConfig =
+	serverPort: 4000
+	webPort: 3000
+	mongoosePort: 27017
+	databaseName: "default_database"
+	siteTitle: "Default Title"
+	siteDesc: "Default Description"
+	hiddenFields: [
+		"_id"
+		"uid"
+		"__v"
+	]
+
 try
 	serverConfig = require('../../../appConfig.json')
 catch error
-	p.error('Could not load app config file.')
-	process.exit(1)
+	serverConfig = defaultConfig
+	p.warning('Could not load app config file, using default configuration.')
+
 
 serverPort = serverConfig.serverPort || process.env.PORT
 corsPort = serverConfig.corsPort
@@ -428,4 +442,7 @@ app.all('/verify_token', verifyToken, (req, res) =>
 
 #: Exports
 
-module.exports = app
+module.exports = {
+	app: app
+	config: serverConfig
+}
