@@ -2,16 +2,16 @@ fs = require('fs')
 defaultConfig = require('../data/defaultConfig.json')
 
 try
-	if !fs.existsSync('./models')
-		fs.mkdirSync('./models')
+	if !fs.existsSync('../../models')
+		fs.mkdirSync('../../models')
 		console.log('Created models directory.')
 catch error
 	console.log('Could not create models directory.')
 
 try
-	if !fs.existsSync('./appConfig.json')
+	if !fs.existsSync('../../appConfig.json')
 		fs.writeFileSync(
-			'./appConfig.json',
+			'../../appConfig.json',
 			JSON.stringify(defaultConfig, null, 2)
 		)
 		console.log('Created config file.')
