@@ -30,7 +30,7 @@ errorObj = (error) ->
 
 # Get Schema Info
 
-schemaInfo = (model) ->
+schemaInfo = (model, primaryKey) ->
 	schema = model.schema.paths
 	listFields = []
 	for key, value of schema
@@ -38,13 +38,13 @@ schemaInfo = (model) ->
 			listFields.push(key)
 	return
 		schema: Object.keys(schema)
-		primary_key: model.primaryKey
-		listFields: listFields
+		primary_key: primaryKey
+		list_fields: listFields
 
 # Get Schema Info Async
 
-schemaAsync = (model) ->
-	Promise.resolve schemaInfo(model)
+schemaAsync = (model, primaryKey) ->
+	Promise.resolve schemaInfo(model, primaryKey)
 
 # Update Query
 

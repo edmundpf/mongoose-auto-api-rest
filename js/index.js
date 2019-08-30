@@ -104,9 +104,10 @@ app.listen(serverPort, () => {
 
 //: All Routes
 app.all(`/:path(${Object.keys(appRoutes).join('|')})/:method(${normalMethods.join('|')})`, verifyToken, async(req, res) => {
-  var field, fields, i, len, model, primaryKey, unsetDict;
-  model = appRoutes[req.params.path].model;
-  primaryKey = appRoutes[req.params.path].primaryKey;
+  var allFields, field, i, key, len, listFields, model, modelInfo, mongoFields, normalDict, primaryKey, record, records, ref, setDict, unsetDict, val;
+  modelInfo = appRoutes[req.params.path];
+  model = modelInfo.model;
+  primaryKey = modelInfo.primaryKey;
   //: Insert
   if (req.params.method === 'insert') {
     return (await responseFormat(model.create.bind(model), [req.query], req, res));
@@ -141,18 +142,39 @@ app.all(`/:path(${Object.keys(appRoutes).join('|')})/:method(${normalMethods.joi
     return (await responseFormat(model.find.bind(model), [{}], req, res));
   //: Get Schema Info
   } else if (req.params.method === 'schema') {
-    return (await responseFormat(schemaAsync, [model, primary_key], req, res));
-  //: Sterilize
+    return (await responseFormat(schemaAsync, [model, primaryKey], req, res));
+  //: Sterilize: removes fields not in schema, sets all query fields to specified value for all docs
   } else if (req.params.method === 'sterilize') {
+    setDict = {};
     unsetDict = {};
-    fields = req.query.fields.split(',');
-    for (i = 0, len = fields.length; i < len; i++) {
-      field = fields[i];
-      unsetDict[field] = 1;
+    normalDict = {};
+    mongoFields = ['_id', 'createdAt', 'updatedAt', 'uid', '__v'];
+    allFields = [...mongoFields, ...modelInfo.allFields];
+    listFields = modelInfo.listFields;
+    records = (await model.find({}).lean());
+    for (i = 0, len = records.length; i < len; i++) {
+      record = records[i];
+      for (key in record) {
+        if (!allFields.includes(key) && !Object.keys(unsetDict).includes(key)) {
+          unsetDict[key] = 1;
+        }
+      }
     }
+    ref = req.query;
+    for (field in ref) {
+      val = ref[field];
+      if (listFields.includes(field)) {
+        setDict[field] = val.split(',');
+      } else {
+        normalDict[field] = val;
+      }
+    }
+    await model.collection.dropIndexes();
     return (await responseFormat(model.updateMany.bind(model), [
       {},
       {
+        ...normalDict,
+        $set: setDict,
         $unset: unsetDict
       },
       {
@@ -177,7 +199,11 @@ app.all(`/:path(${Object.keys(listRoutes).join('|')})/:method(${listMethods.join
             $each: req.query[key].split(',')
           };
         } else {
-          updateDict[key] = req.query[key].split(',');
+          if (req.query[key] !== '[]') {
+            updateDict[key] = req.query[key].split(',');
+          } else {
+            updateDict[key] = [];
+          }
         }
       }
     }

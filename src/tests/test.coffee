@@ -1,4 +1,5 @@
 a = require('axios')
+fs = require('fs')
 p = require('print-tools-js')
 assert = require('chai').assert
 should = require('chai').should()
@@ -10,10 +11,39 @@ PASSWORD2 = 'testPass2!'
 SECRET_KEY = 'secretKeyTest'
 ACCESS_TOKEN = ''
 
+customerModel = """
+{
+	name: 'customer',
+	schema: {
+		name: {
+			type: String,
+			unique: true,
+			required: true,
+			primaryKey: true,
+		},
+		email: {
+			type: String,
+			unique: true,
+			required: true,
+		},
+		products: [{
+			type: String
+		}]
+	},
+}
+"""
+
 #: Start Server Hook
 
 before((done) ->
-	this.timeout(5000)
+	this.timeout(10000)
+	if !fs.existsSync('./models')
+		fs.mkdirSync('./models')
+	if !fs.existsSync('./models/customer.js')
+		fs.writeFileSync(
+			'./models/customer.js',
+			"module.exports = #{customerModel}"
+		)
 	api = require('../index')
 	port = require('../../../../appConfig.json').serverPort
 	url = "http://localhost:#{port}"
@@ -26,16 +56,24 @@ request = (endpoint, func, log) ->
 	try
 		res = await func("#{url}#{endpoint}")
 		if log
+			console.log("\n#{'-'.repeat(process.stdout.columns)}")
 			p.chevron("Status Code: #{res.status}")
-			p.bullet(JSON.stringify(res.data))
+			p.bullet(
+				"#{JSON.stringify(res.data)}\n",
+				log: false
+			)
 		return {
 			...res.data,
 			statusCode: res.status
 		}
 	catch error
 		if log
+			console.log("\n#{'-'.repeat(process.stdout.columns)}")
 			p.chevron("Status Code: #{error.response.status}")
-			p.bullet(JSON.stringify(error.response.data))
+			p.bullet(
+				"#{JSON.stringify(error.response.data)}\n"
+				log: false
+			)
 		return {
 			...error.response.data,
 			statusCode: error.response.status
@@ -88,6 +126,21 @@ errorCodeAssert = (res, codes) ->
 		true
 	)
 
+#: Error Response Exists Assert
+
+errorExistsAssert = (res, fields) ->
+	hasFields = false
+	for field in fields
+		if res.response[field]?
+			hasFields = true
+			break
+	assert.equal(
+		res.status == 'error' and
+		[401, 500].includes(res.statusCode) and
+		!hasFields,
+		true
+	)
+
 #: Okay Response Assert
 
 okayAssert = (res, msg, args) ->
@@ -105,6 +158,31 @@ okayAssert = (res, msg, args) ->
 		true
 	)
 
+#: Okay Response Exists Assert
+
+okayExistsAssert = (res, fields) ->
+	hasFields = true
+	for field in fields
+		if !res.response[field]?
+			hasFields = false
+			break
+	assert.equal(
+		res.status == 'ok' and
+		res.statusCode == 200 and
+		hasFields,
+		true
+	)
+
+#: Okay Modification Assert
+
+okayModAssert = (res, field, num) ->
+	assert.equal(
+		res.status == 'ok' and
+		res.statusCode == 200 and
+		res.response[field] == num,
+		true
+	)
+
 #: Creation Assert
 
 createAssert = (res) ->
@@ -118,14 +196,16 @@ createAssert = (res) ->
 # Check that server has started
 
 describe 'Server Started', ->
+
 	it 'Server is on', ->
 		assert(api?)
 
 #: Initialization/Admin Setup
 
 describe 'Admin setup', ->
+
 	it 'Init - Signup not protected', ->
-		res = await get('/signup')
+		res = await post('/signup')
 		errorAssert(
 			res,
 			'Not Authorized'
@@ -177,8 +257,16 @@ describe 'Admin setup', ->
 #: Admin Validation
 
 describe 'Admin validation', ->
+
 	it 'No token', ->
 		res = await get('/verify_token')
+		errorAssert(
+			res,
+			'No token provided'
+		)
+
+	it 'Model route - no token', ->
+		res = await get('/customer/get_all')
 		errorAssert(
 			res,
 			'No token provided'
@@ -215,6 +303,240 @@ describe 'Admin validation', ->
 		assert.equal(
 			res.status == 'ok' and
 			res.response.access_token?,
+			true
+		)
+
+	it 'Password change - User not found', ->
+		res = await post("/update_password?username=fakeUser@email.com&password=fakePassword1!&current_password=fakePassword2!")
+		errorAssert(
+			res,
+			'User does not exist'
+		)
+
+	it 'Password change - Invalid password', ->
+		res = await post("/update_password?username=#{USERNAME}&password=fakePassword1!&current_password=fakePassword2!")
+		errorAssert(
+			res,
+			'Incorrect username or password'
+		)
+
+	it 'Password change - no current password', ->
+		res = await post("/update_password?username=#{USERNAME}&password=fakePassword1!")
+		errorAssert(
+			res,
+			'Must include current password'
+		)
+
+	it 'Password change - invalid password', ->
+		res = await post("/update_password?username=#{USERNAME}&password=fakePassword&current_password=#{PASSWORD1}")
+		errorCodeAssert(
+			res,
+			['PASSWORD_INVALID_PASSWORD']
+		)
+
+	it 'Valid password change', ->
+		res = await post("/update_password?username=#{USERNAME}&password=#{PASSWORD2}&current_password=#{PASSWORD1}")
+		okayAssert(
+			res,
+			'Password updated'
+		)
+
+	it 'Post password change - valid login', ->
+		res = await post("/login?username=#{USERNAME}&password=#{PASSWORD2}")
+		assert.equal(
+			res.status == 'ok' and
+			res.response.access_token?,
+			true
+		)
+
+#: API Methods
+
+describe 'API Methods', ->
+
+	it 'Invalid insert', ->
+		res = await post("/customer/insert?name=bob")
+		errorAssert(
+			res,
+			'validation failed'
+		)
+	it 'Valid insert', ->
+		res = await post("/customer/insert?name=bob&email=bob@email.com")
+		okayExistsAssert(
+			res,
+			[
+				'_id',
+				'uid'
+			]
+		)
+
+	it 'Invalid update', ->
+		res = await post("/customer/update?name=joe")
+		okayModAssert(
+			res,
+			'nModified',
+			0
+		)
+
+	it 'Valid update', ->
+		res = await post("/customer/update?name=bob&email=bob1@gmail.com")
+		okayModAssert(
+			res,
+			'nModified',
+			1
+		)
+
+	it 'Invalid get', ->
+		res = await get("/customer/get?name=joe")
+		assert.equal(
+			res.status == 'ok' and
+			res.statusCode == 200 and
+			res.response.length == 0,
+			true
+		)
+
+	it 'Valid get', ->
+		res = await get("/customer/get?name=bob")
+		assert.equal(
+			res.status == 'ok' and
+			res.statusCode == 200 and
+			res.response.length == 1 and
+			res.response[0]._id? and
+			res.response[0].name == 'bob',
+			true
+		)
+
+	it 'Valid get-all', ->
+		res = await get("/customer/get_all")
+		assert.equal(
+			res.status == 'ok' and
+			res.statusCode == 200 and
+			res.response.length == 1 and
+			res.response[0]._id? and
+			res.response[0].name == 'bob',
+			true
+		)
+
+	it 'Schema info', ->
+		res = await get("/customer/schema")
+		assert.equal(
+			res.status == 'ok' and
+			res.statusCode == 200 and
+			res.response.schema.includes('name') and
+			res.response.list_fields.includes('products') and
+			res.response.primary_key == 'name',
+			true
+		)
+
+	it 'Sterilize - remove obsolete, and set fields for all documents', ->
+		res = await get("/customer/sterilize?email=master@email.com&products=apples,oranges")
+		users = await get("/customer/get_all")
+		hasChanges = true
+		for user in users.response
+			if user.products[0] != 'apples' or user.products[1] != 'oranges' or user.email != 'master@email.com'
+				hasChanges = false
+				break
+		assert.equal(
+			res.status == 'ok' and
+			res.statusCode == 200 and
+			res.response.nModified == 1 and
+			hasChanges,
+			true
+		)
+
+	it 'Invalid delete', ->
+		await post("/customer/insert?name=tom&email=tom@email.com")
+		await post("/customer/insert?name=jerry&email=jerry@email.com")
+		res = await remove("/customer/delete?name=barney")
+		okayModAssert(
+			res,
+			'deletedCount',
+			0
+		)
+
+	it 'Valid delete', ->
+		res = await remove("/customer/delete?name=tom")
+		okayModAssert(
+			res,
+			'deletedCount',
+			1
+		)
+
+	it 'Valid push', ->
+		res = await post("/customer/push?name=bob&products=apples,oranges")
+		user = await get("/customer/get?name=bob")
+		assert.equal(
+			res.status == 'ok' and
+			res.statusCode == 200 and
+			res.response.nModified == 1 and
+			user.response[0].products[2] == 'apples' and
+			user.response[0].products[3] == 'oranges',
+			true
+		)
+
+	it 'Invalid push unique', ->
+		res = await post("/customer/push_unique?name=bob&products=apples,oranges")
+		user = await get("/customer/get?name=bob")
+		assert.equal(
+			res.status == 'ok' and
+			res.statusCode == 200 and
+			user.response[0].products.length == 4,
+			true
+		)
+
+	it 'Valid push unique', ->
+		res = await post("/customer/push_unique?name=bob&products=pears,grapes")
+		user = await get("/customer/get?name=bob")
+		assert.equal(
+			res.status == 'ok' and
+			res.statusCode == 200 and
+			res.response.nModified == 1 and
+			user.response[0].products[4] == 'pears' and
+			user.response[0].products[5] == 'grapes',
+			true
+		)
+
+	it 'Valid set', ->
+		res = await post("/customer/set?name=bob&products=beets,carrots")
+		user = await get("/customer/get?name=bob")
+		assert.equal(
+			res.status == 'ok' and
+			res.statusCode == 200 and
+			res.response.nModified == 1 and
+			user.response[0].products[0] == 'beets' and
+			user.response[0].products[1] == 'carrots',
+			true
+		)
+
+	it 'Valid set - no items', ->
+		res = await post("/customer/set?name=bob&products=[]")
+		user = await get("/customer/get?name=bob")
+		assert.equal(
+			res.status == 'ok' and
+			res.statusCode == 200 and
+			res.response.nModified == 1 and
+			user.response[0].products.length == 0
+			true
+		)
+
+	it 'Valid delete all', ->
+		res = await remove("/customer/delete_all")
+		okayModAssert(
+			res,
+			'deletedCount',
+			2
+		)
+
+	it 'Admin Auth cleanup', ->
+		user = await remove('/secret_key/delete_all')
+		secret = await remove('/user_auth/delete_all')
+		p.success('Secret key and User Auth cleanup completed.')
+		assert.equal(
+			user.status == 'ok' and
+			user.statusCode == 200 and
+			user.response.deletedCount == 1 and
+			secret.status == 'ok' and
+			secret.statusCode == 200 and
+			secret.response.deletedCount == 1,
 			true
 		)
 

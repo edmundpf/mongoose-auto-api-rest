@@ -75,8 +75,9 @@ app.listen(serverPort, =>
 app.all("/:path(#{Object.keys(appRoutes).join('|')})/:method(#{normalMethods.join('|')})",
 	verifyToken, (req, res) =>
 
-		model = appRoutes[req.params.path].model
-		primaryKey = appRoutes[req.params.path].primaryKey
+		modelInfo = appRoutes[req.params.path]
+		model = modelInfo.model
+		primaryKey = modelInfo.primaryKey
 
 		#: Insert
 
@@ -157,26 +158,50 @@ app.all("/:path(#{Object.keys(appRoutes).join('|')})/:method(#{normalMethods.joi
 			await responseFormat(
 				schemaAsync,
 				[
-					model,
-					primary_key
+					model
+					primaryKey
 				],
 				req,
 				res
 			)
 
-		#: Sterilize
+		#: Sterilize: removes fields not in schema, sets all query fields to specified value for all docs
 
 		else if req.params.method == 'sterilize'
+			setDict = {}
 			unsetDict = {}
-			fields = req.query.fields.split(',')
-			for field in fields
-				unsetDict[field] = 1
+			normalDict = {}
+			mongoFields = [
+				'_id',
+				'createdAt',
+				'updatedAt',
+				'uid',
+				'__v'
+			]
+			allFields = [
+				...mongoFields
+				...modelInfo.allFields
+			]
+			listFields = modelInfo.listFields
+			records = await model.find({}).lean()
+			for record in records
+				for key of record
+					if !allFields.includes(key) and !Object.keys(unsetDict).includes(key)
+						unsetDict[key] = 1
+			for field, val of req.query
+				if listFields.includes(field)
+					setDict[field] = val.split(',')
+				else
+					normalDict[field] = val
+			await model.collection.dropIndexes()
 			await responseFormat(
 				model.updateMany.bind(model),
 				[
 					{},
 					{
-						$unset: unsetDict
+						...normalDict,
+						$set: setDict,
+						$unset: unsetDict,
 					},
 					{
 						multi: true,
@@ -201,9 +226,13 @@ app.all("/:path(#{Object.keys(listRoutes).join('|')})/:method(#{listMethods.join
 			for key of req.query
 				if ![primaryKey, 'auth_token', 'refresh_token'].includes(key)
 					if req.params.method != 'set'
-						updateDict[key] = $each: req.query[key].split(',')
+						updateDict[key] =
+							$each: req.query[key].split(',')
 					else
-						updateDict[key] = req.query[key].split(',')
+						if req.query[key] != '[]'
+							updateDict[key] = req.query[key].split(',')
+						else
+							updateDict[key] = []
 
 			#: Push
 

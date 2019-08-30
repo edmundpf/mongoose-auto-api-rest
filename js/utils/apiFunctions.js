@@ -39,7 +39,7 @@ errorObj = function(error) {
 //::: SCHEMA FUNCTIONS :::
 
 // Get Schema Info
-schemaInfo = function(model) {
+schemaInfo = function(model, primaryKey) {
   var key, listFields, schema, value;
   schema = model.schema.paths;
   listFields = [];
@@ -51,14 +51,14 @@ schemaInfo = function(model) {
   }
   return {
     schema: Object.keys(schema),
-    primary_key: model.primaryKey,
-    listFields: listFields
+    primary_key: primaryKey,
+    list_fields: listFields
   };
 };
 
 // Get Schema Info Async
-schemaAsync = function(model) {
-  return Promise.resolve(schemaInfo(model));
+schemaAsync = function(model, primaryKey) {
+  return Promise.resolve(schemaInfo(model, primaryKey));
 };
 
 // Update Query
