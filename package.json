@@ -1,6 +1,6 @@
 {
 	"name": "mongoose-auto-api.rest",
-	"version": "0.0.2",
+	"version": "0.0.3",
 	"description": "Automatic Mongoose REST API - Rest API Module",
 	"main": "./js/index.js",
 	"files": [
@@ -9,7 +9,8 @@
 	"scripts": {
 		"start": "node ./js",
 		"test": "./node_modules/.bin/mocha js/tests",
-		"compile": "grunt sync"
+		"compile": "grunt sync",
+		"postinstall": "node ./js/utils/postInstall"
 	},
 	"author": "Edmund Pfeil {edmundpf@buffalo.edu}",
 	"homepage": "https://github.com/edmundpf/mongoose-auto-api-rest",

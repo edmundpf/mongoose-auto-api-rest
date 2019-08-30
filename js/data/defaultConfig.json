@@ -1,0 +1,13 @@
+{
+	"serverPort": 4000,
+	"webPort": 3000,
+	"mongoosePort": 27017,
+	"databaseName": "default_database",
+	"siteTitle": "Default Title",
+	"siteDesc": "Default Description",
+	"hiddenFields": [
+		"_id",
+		"uid",
+		"__v"
+	]
+}
