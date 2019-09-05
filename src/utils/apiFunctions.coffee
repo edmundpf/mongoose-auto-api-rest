@@ -79,9 +79,12 @@ allowedPassword = (req, res) ->
 
 # Response/Error JSON
 
-responseFormat = (method, args, req, res) ->
+responseFormat = (method, args, req, res, spreadArgs=true) ->
 	try
-		response = await method(...args);
+		if spreadArgs
+			response = await method(...args)
+		else
+			response = await method(args)
 		retJson =
 			status: 'ok'
 			response: response

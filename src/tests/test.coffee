@@ -33,17 +33,61 @@ customerModel = """
 }
 """
 
+productModel = """
+{
+	name: 'product',
+	schema: {
+		name: {
+			type: String,
+			unique: true,
+			required: true,
+			primaryKey: true,
+		},
+		price: {
+			type: Number,
+			unique: true,
+			required: true,
+		}
+	},
+}
+"""
+
+infoModel = """
+{
+	name: 'info',
+	schema: {
+		email: {
+			type: String,
+			unique: true,
+			required: true,
+			primaryKey: true,
+		},
+		location: {
+			type: String,
+			unique: true,
+			required: true,
+		}
+	},
+}
+"""
+
+models =
+	'./models/customer.js': customerModel
+	'./models/product.js': productModel
+	'./models/info.js': infoModel
+
 #: Start Server Hook
 
 before((done) ->
 	this.timeout(10000)
 	if !fs.existsSync('./models')
 		fs.mkdirSync('./models')
-	if !fs.existsSync('./models/customer.js')
-		fs.writeFileSync(
-			'./models/customer.js',
-			"module.exports = #{customerModel}"
-		)
+	for key, val of models
+		if !fs.existsSync(key)
+			fs.writeFileSync(
+				key,
+				"module.exports = #{val}"
+			)
 	api = require('../index').app
 	port = require('../index').config.serverPort
 	url = "http://localhost:#{port}"
@@ -190,6 +234,23 @@ createAssert = (res) ->
 		res.status == 'ok' and
 		res.statusCode == 200 and
 		res.response._id?,
+		true
+	)
+
+#: Find Test
+
+findTest = (field, op, value, valField, valRes) ->
+	query = [{
+		field: field
+		op: op
+		value: value
+	}]
+	query = new URLSearchParams(where: JSON.stringify(query))
+	res = await get("/customer/find?#{query}")
+	assert.equal(
+		res.status == 'ok' and
+		res.statusCode == 200 and
+		res.response[0][valField] == valRes,
 		true
 	)
 
@@ -453,6 +514,219 @@ describe 'API Methods', ->
 			0
 		)
 
+	it 'Invalid find', ->
+		res = await get("/customer/find?where=")
+		errorAssert(
+			res,
+			'Arguments must be aggregate pipeline operators'
+		)
+
+	it 'Valid $eq find', ->
+		await findTest(
+			'email'
+			'$eq',
+			'jerry@email.com'
+			'email',
+			'jerry@email.com'
+		)
+
+	it 'Valid $ne find', ->
+		await findTest(
+			'email'
+			'$ne',
+			'jerry@email.com'
+			'email',
+			'master@email.com'
+		)
+
+	it 'Valid $gt find', ->
+		await findTest(
+			'email'
+			'$gt',
+			'master@email.com'
+			'email',
+			'tom@email.com'
+		)
+
+	it 'Valid $gte find', ->
+		await findTest(
+			'email'
+			'$gte',
+			'master@email.com'
+			'email',
+			'master@email.com'
+		)
+
+	it 'Valid $lt find', ->
+		await findTest(
+			'email'
+			'$lt',
+			'master@email.com'
+			'email',
+			'jerry@email.com'
+		)
+
+	it 'Valid $in find', ->
+		await findTest(
+			'email'
+			'$in',
+			[
+				'master@email.com'
+				'fake@email.com'
+			],
+			'email',
+			'master@email.com'
+		)
+
+	it 'Valid $nin find', ->
+		await findTest(
+			'email'
+			'$nin',
+			[
+				'master@email.com'
+				'tom@email.com'
+			],
+			'email',
+			'jerry@email.com'
+		)
+
+	it 'Valid $lte find', ->
+		await findTest(
+			'email'
+			'$lte',
+			'master@email.com'
+			'email',
+			'master@email.com'
+		)
+
+	it 'Valid $strt find', ->
+		await findTest(
+			'email'
+			'$strt',
+			'master'
+			'email',
+			'master@email.com'
+		)
+
+	it 'Valid $end find', ->
+		await findTest(
+			'email'
+			'$end',
+			'y@email.com'
+			'email',
+			'jerry@email.com'
+		)
+
+	it 'Valid $cont find', ->
+		await findTest(
+			'email'
+			'$cont',
+			'aste'
+			'email',
+			'master@email.com'
+		)
+
+	it 'Valid $inc find', ->
+		await findTest(
+			'products'
+			'$inc',
+			'apples'
+			'email',
+			'master@email.com'
+		)
+
+	it 'Valid $ninc find', ->
+		await findTest(
+			'products'
+			'$ninc',
+			'apples'
+			'email',
+			'tom@email.com'
+		)
+
+	it 'Valid find w/ multiple arguments', ->
+		query = [
+			{
+				field: 'email'
+				op: '$cont'
+				value: 'master'
+			},
+			{
+				field: 'products'
+				op: '$inc'
+				value: 'apples'
+			},
+			{
+				field: 'email'
+				op: '$gt'
+				value: 'jerry'
+			}
+		]
+		query = new URLSearchParams(where: JSON.stringify(query))
+		res = await get("/customer/find?#{query}")
+		assert.equal(
+			res.status == 'ok' and
+			res.statusCode == 200 and
+			res.response[0].email == 'master@email.com',
+			true
+		)
+
+	it 'Valid list field lookup', ->
+		query = [
+			{
+				field: 'email'
+				op: '$cont'
+				value: 'master'
+			}
+		]
+		query = new URLSearchParams(where: JSON.stringify(query))
+		await post("/product/insert?name=apples&price=2.50")
+		await post("/product/insert?name=oranges&price=4.50")
+		res = await get("/customer/find?#{query}&from=product&local_field=products&foreign_field=name&as=productInfo")
+		await post("/product/delete_all")
+		assert.equal(
+			res.status == 'ok' and
+			res.statusCode == 200 and
+			res.response[0].productInfo[0].name == 'apples',
+			true
+		)
+
+	it 'Valid non-list field lookup', ->
+		query = [
+			{
+				field: 'email'
+				op: '$cont'
+				value: 'master'
+			}
+		]
+		query = new URLSearchParams(where: JSON.stringify(query))
+		await post("/info/insert?email=master@email.com&location=NY")
+		res = await get("/customer/find?#{query}&from=info&local_field=email&foreign_field=email&as=emailInfo")
+		await post("/info/delete_all")
+		assert.equal(
+			res.status == 'ok' and
+			res.statusCode == 200 and
+			res.response[0].emailInfo.location == 'NY',
+			true
+		)
+
+	it 'Valid find w/ no records found', ->
+		query = [
+			{
+				field: 'email'
+				op: '$cont'
+				value: 'debra'
+			}
+		]
+		query = new URLSearchParams(where: JSON.stringify(query))
+		res = await get("/customer/find?#{query}")
+		assert.equal(
+			res.status == 'ok' and
+			res.statusCode == 200 and
+			res.response.length == 0
+			true
+		)
+
 	it 'Valid delete', ->
 		res = await remove("/customer/delete?name=tom")
 		okayModAssert(
@@ -543,8 +817,9 @@ describe 'API Methods', ->
 # Cleanup
 
 after((done) ->
-	if fs.existsSync('./models/customer.js')
-		fs.unlinkSync('./models/customer.js')
+	for key, val of models
+		if fs.existsSync(key)
+			fs.unlinkSync(key)
 	if fs.existsSync('./models')
 		fs.rmdirSync('./models')
 	done()

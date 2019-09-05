@@ -90,10 +90,14 @@ allowedPassword = function(req, res) {
 //::: RESPONSE FUNCTIONS :::
 
 // Response/Error JSON
-responseFormat = async function(method, args, req, res) {
+responseFormat = async function(method, args, req, res, spreadArgs = true) {
   var errJson, error, response, retJson;
   try {
-    response = (await method(...args));
+    if (spreadArgs) {
+      response = (await method(...args));
+    } else {
+      response = (await method(args));
+    }
     retJson = {
       status: 'ok',
       response: response

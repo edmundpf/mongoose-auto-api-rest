@@ -15,6 +15,7 @@ normalMethods = [
 	'delete_all'
 	'get'
 	'get_all'
+	'find'
 	'sterilize'
 	'schema'
 ]

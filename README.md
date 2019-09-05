@@ -54,6 +54,7 @@ $ api = require('mongoose-auto-api.rest')
 	* Parameters: `auth_token`
 	* Success: `{ status: 'ok', response: { message: 'Token verified.'}`
 	* Error: `{ status: 'error', response: { message: 'No token provided.'}}`
+
 ## CRUD Routes
 * "x" denotes collection name
 	* I.E. */customer/insert?name=...?*
@@ -63,6 +64,7 @@ $ api = require('mongoose-auto-api.rest')
 	* Error: `{ name: "MongoError", code: 1050 }`
 * `x/update, x/push, x/push_unique, x/set`
 	* `x/update` updates record
+		* use field *update_primary* to change the primary key
 	* `x/push` pushes comma separated records into list
 		* Records will be placed regardless if there is an existing matching record in the list
 	* `x/push_unique` pushes unique comma separated records into the list
@@ -81,6 +83,36 @@ $ api = require('mongoose-auto-api.rest')
 * `x/get_all`
 	* Gets all records
 	* Success: `[{attributes...}, {}...]`
+* `x/find`
+	* finds records
+		* param - *where*
+			* expects list of objects with attributes *field*, *op*, and *value*
+				* i.e. [{ field: 'price', op: '$gt', value: 2 }]
+			* operators
+				* $eq - equal
+				* $ne - not equal
+				* $gt - greater than
+				* $gte - greater than or equal to
+				* $lt - less than
+				* $lte - less than or equal to
+				* $in - in array
+				* $nin - not in array
+				* $strt - starts with string
+				* $end - ends with string
+				* $cont - contains string
+				* $inc - array field includes value
+				* $ninc - array field does not include value
+	* joins collections
+		* param - *from*
+			* collection to join
+		* param - *local_field*
+			* field from local collection to join
+		* param - *foreign_field*
+			* field from foreign collection to join
+		* param - *as*
+			* name to assign the joined field in returned document
+		* if local field is a list, joined field will return a list
+		* if local field is not a list, joined field will return an object
 * `x/schema`
 	* Gets schema information
 	* Success: `{ schema: [], primary_key, list_fields: [] }`
@@ -88,4 +120,3 @@ $ api = require('mongoose-auto-api.rest')
 	* Removes obsolete fields and indexes after updating schema
 	* Sets value for given field for all documents (useful for updating old documents after adding schema)
 	* Parameters: *field_name* corresponds to collection field name
-

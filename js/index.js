@@ -1,4 +1,4 @@
-var allowedPassword, app, appRoutes, assert, bcrypt, cors, corsPort, databaseName, db, error, errorObj, express, incorrectSecretKey, incorrectUserOrPass, listMethods, listRoutes, models, mongoose, mongooseConnect, mongoosePort, noCurrentPass, normalMethods, normalRoutes, objOmit, p, responseFormat, routeMethods, schemaAsync, secretKey, serverConfig, serverPort, signToken, updateQuery, userAuth, userNotFound, verifyToken;
+var allowedPassword, app, appRoutes, assert, bcrypt, cors, corsPort, databaseName, db, error, errorObj, express, incorrectSecretKey, incorrectUserOrPass, listMethods, listRoutes, models, mongoose, mongooseConnect, mongoosePort, noCurrentPass, normalMethods, normalRoutes, objOmit, p, parseQuery, responseFormat, routeMethods, schemaAsync, secretKey, serverConfig, serverPort, signToken, updateQuery, userAuth, userNotFound, verifyToken;
 
 cors = require('cors');
 
@@ -49,6 +49,8 @@ noCurrentPass = require('./utils/apiFunctions').noCurrentPass;
 signToken = require('./utils/apiFunctions').signToken;
 
 verifyToken = require('./utils/apiFunctions').verifyToken;
+
+parseQuery = require('./utils/parseQuery');
 
 try {
   serverConfig = require('../../../appConfig.json');
@@ -104,7 +106,7 @@ app.listen(serverPort, () => {
 
 //: All Routes
 app.all(`/:path(${Object.keys(appRoutes).join('|')})/:method(${normalMethods.join('|')})`, verifyToken, async(req, res) => {
-  var allFields, field, i, key, len, listFields, model, modelInfo, mongoFields, normalDict, primaryKey, record, records, ref, setDict, unsetDict, val;
+  var aggArgs, allFields, field, i, key, len, listFields, lookup, model, modelInfo, mongoFields, normalDict, primaryKey, record, records, ref, setDict, unsetDict, unwind, val;
   modelInfo = appRoutes[req.params.path];
   model = modelInfo.model;
   primaryKey = modelInfo.primaryKey;
@@ -140,6 +142,29 @@ app.all(`/:path(${Object.keys(appRoutes).join('|')})/:method(${normalMethods.joi
   //: Get All
   } else if (req.params.method === 'get_all') {
     return (await responseFormat(model.find.bind(model), [{}], req, res));
+  //: Find
+  } else if (req.params.method === 'find') {
+    if ((req.query.local_field != null) && (req.query.from != null) && (req.query.foreign_field != null) && (req.query.as != null)) {
+      lookup = {
+        $lookup: {
+          from: req.query.from,
+          localField: req.query.local_field,
+          foreignField: req.query.foreign_field,
+          as: req.query.as
+        }
+      };
+      if (modelInfo.listFields.includes(req.query.local_field)) {
+        aggArgs = [parseQuery(model, req.query.where), lookup];
+      } else {
+        unwind = {
+          $unwind: `$${req.query.as}`
+        };
+        aggArgs = [parseQuery(model, req.query.where), lookup, unwind];
+      }
+    } else {
+      aggArgs = [parseQuery(model, req.query.where)];
+    }
+    return (await responseFormat(model.aggregate.bind(model), aggArgs, req, res, false));
   //: Get Schema Info
   } else if (req.params.method === 'schema') {
     return (await responseFormat(schemaAsync, [model, primaryKey], req, res));
@@ -387,5 +412,6 @@ app.all('/verify_token', verifyToken, (req, res) => {
 //: Exports
 module.exports = {
   app: app,
+  models: models,
   config: serverConfig
 };

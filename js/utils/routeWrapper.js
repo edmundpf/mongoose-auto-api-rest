@@ -5,7 +5,7 @@ models = require('mongoose-auto-api.models');
 //: Route Methods
 listMethods = ['set', 'push', 'push_unique'];
 
-normalMethods = ['insert', 'update', 'delete', 'delete_all', 'get', 'get_all', 'sterilize', 'schema'];
+normalMethods = ['insert', 'update', 'delete', 'delete_all', 'get', 'get_all', 'find', 'sterilize', 'schema'];
 
 routeMethods = [...normalMethods, ...listMethods];
 

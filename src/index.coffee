@@ -25,6 +25,7 @@ userNotFound = require('./utils/apiFunctions').userNotFound
 noCurrentPass = require('./utils/apiFunctions').noCurrentPass
 signToken = require('./utils/apiFunctions').signToken
 verifyToken = require('./utils/apiFunctions').verifyToken
+parseQuery = require('./utils/parseQuery')
 
 try
 	serverConfig = require('../../../appConfig.json')
@@ -151,6 +152,44 @@ app.all("/:path(#{Object.keys(appRoutes).join('|')})/:method(#{normalMethods.joi
 				[{}],
 				req,
 				res
+			)
+
+		#: Find
+
+		else if req.params.method == 'find'
+
+			if req.query.local_field? and req.query.from? and req.query.foreign_field? and req.query.as?
+				lookup =
+					$lookup:
+						from: req.query.from
+						localField: req.query.local_field
+						foreignField: req.query.foreign_field
+						as: req.query.as
+				if modelInfo.listFields.includes(req.query.local_field)
+					aggArgs = [
+						parseQuery(model, req.query.where),
+						lookup
+					]
+				else
+					unwind =
+						$unwind: "$#{req.query.as}"
+					aggArgs = [
+						parseQuery(model, req.query.where),
+						lookup,
+						unwind
+					]
+
+			else
+				aggArgs = [
+					parseQuery(model, req.query.where)
+				]
+
+			await responseFormat(
+				model.aggregate.bind(model),
+				aggArgs,
+				req,
+				res,
+				false
 			)
 
 		#: Get Schema Info
@@ -431,5 +470,6 @@ app.all('/verify_token', verifyToken, (req, res) =>
 
 module.exports = {
 	app: app
+	models: models
 	config: serverConfig
 }

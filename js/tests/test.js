@@ -1,4 +1,4 @@
-var ACCESS_TOKEN, PASSWORD1, PASSWORD2, SECRET_KEY, USERNAME, a, api, assert, createAssert, customerModel, errorAssert, errorCodeAssert, errorExistsAssert, fs, get, okayAssert, okayExistsAssert, okayModAssert, p, port, post, remove, request, server, should, url;
+var ACCESS_TOKEN, PASSWORD1, PASSWORD2, SECRET_KEY, USERNAME, a, api, assert, createAssert, customerModel, errorAssert, errorCodeAssert, errorExistsAssert, findTest, fs, get, infoModel, models, okayAssert, okayExistsAssert, okayModAssert, p, port, post, productModel, remove, request, server, should, url;
 
 a = require('axios');
 
@@ -24,14 +24,28 @@ ACCESS_TOKEN = '';
 
 customerModel = "{\n	name: 'customer',\n	schema: {\n		name: {\n			type: String,\n			unique: true,\n			required: true,\n			primaryKey: true,\n		},\n		email: {\n			type: String,\n			unique: true,\n			required: true,\n		},\n		products: [{\n			type: String\n		}]\n	},\n}";
 
+productModel = "{\n	name: 'product',\n	schema: {\n		name: {\n			type: String,\n			unique: true,\n			required: true,\n			primaryKey: true,\n		},\n		price: {\n			type: Number,\n			unique: true,\n			required: true,\n		}\n	},\n}";
+
+infoModel = "{\n	name: 'info',\n	schema: {\n		email: {\n			type: String,\n			unique: true,\n			required: true,\n			primaryKey: true,\n		},\n		location: {\n			type: String,\n			unique: true,\n			required: true,\n		}\n	},\n}";
+
+models = {
+  './models/customer.js': customerModel,
+  './models/product.js': productModel,
+  './models/info.js': infoModel
+};
+
 //: Start Server Hook
 before(function(done) {
+  var key, val;
   this.timeout(10000);
   if (!fs.existsSync('./models')) {
     fs.mkdirSync('./models');
   }
-  if (!fs.existsSync('./models/customer.js')) {
-    fs.writeFileSync('./models/customer.js', `module.exports = ${customerModel}`);
+  for (key in models) {
+    val = models[key];
+    if (!fs.existsSync(key)) {
+      fs.writeFileSync(key, `module.exports = ${val}`);
+    }
   }
   api = require('../index').app;
   port = require('../index').config.serverPort;
@@ -168,6 +182,23 @@ okayModAssert = function(res, field, num) {
 //: Creation Assert
 createAssert = function(res) {
   return assert.equal(res.status === 'ok' && res.statusCode === 200 && (res.response._id != null), true);
+};
+
+//: Find Test
+findTest = async function(field, op, value, valField, valRes) {
+  var query, res;
+  query = [
+    {
+      field: field,
+      op: op,
+      value: value
+    }
+  ];
+  query = new URLSearchParams({
+    where: JSON.stringify(query)
+  });
+  res = (await get(`/customer/find?${query}`));
+  return assert.equal(res.status === 'ok' && res.statusCode === 200 && res.response[0][valField] === valRes, true);
 };
 
 // Check that server has started
@@ -353,6 +384,125 @@ describe('API Methods', function() {
     res = (await remove("/customer/delete?name=barney"));
     return okayModAssert(res, 'deletedCount', 0);
   });
+  it('Invalid find', async function() {
+    var res;
+    res = (await get("/customer/find?where="));
+    return errorAssert(res, 'Arguments must be aggregate pipeline operators');
+  });
+  it('Valid $eq find', async function() {
+    return (await findTest('email', '$eq', 'jerry@email.com', 'email', 'jerry@email.com'));
+  });
+  it('Valid $ne find', async function() {
+    return (await findTest('email', '$ne', 'jerry@email.com', 'email', 'master@email.com'));
+  });
+  it('Valid $gt find', async function() {
+    return (await findTest('email', '$gt', 'master@email.com', 'email', 'tom@email.com'));
+  });
+  it('Valid $gte find', async function() {
+    return (await findTest('email', '$gte', 'master@email.com', 'email', 'master@email.com'));
+  });
+  it('Valid $lt find', async function() {
+    return (await findTest('email', '$lt', 'master@email.com', 'email', 'jerry@email.com'));
+  });
+  it('Valid $in find', async function() {
+    return (await findTest('email', '$in', ['master@email.com', 'fake@email.com'], 'email', 'master@email.com'));
+  });
+  it('Valid $nin find', async function() {
+    return (await findTest('email', '$nin', ['master@email.com', 'tom@email.com'], 'email', 'jerry@email.com'));
+  });
+  it('Valid $lte find', async function() {
+    return (await findTest('email', '$lte', 'master@email.com', 'email', 'master@email.com'));
+  });
+  it('Valid $strt find', async function() {
+    return (await findTest('email', '$strt', 'master', 'email', 'master@email.com'));
+  });
+  it('Valid $end find', async function() {
+    return (await findTest('email', '$end', 'y@email.com', 'email', 'jerry@email.com'));
+  });
+  it('Valid $cont find', async function() {
+    return (await findTest('email', '$cont', 'aste', 'email', 'master@email.com'));
+  });
+  it('Valid $inc find', async function() {
+    return (await findTest('products', '$inc', 'apples', 'email', 'master@email.com'));
+  });
+  it('Valid $ninc find', async function() {
+    return (await findTest('products', '$ninc', 'apples', 'email', 'tom@email.com'));
+  });
+  it('Valid find w/ multiple arguments', async function() {
+    var query, res;
+    query = [
+      {
+        field: 'email',
+        op: '$cont',
+        value: 'master'
+      },
+      {
+        field: 'products',
+        op: '$inc',
+        value: 'apples'
+      },
+      {
+        field: 'email',
+        op: '$gt',
+        value: 'jerry'
+      }
+    ];
+    query = new URLSearchParams({
+      where: JSON.stringify(query)
+    });
+    res = (await get(`/customer/find?${query}`));
+    return assert.equal(res.status === 'ok' && res.statusCode === 200 && res.response[0].email === 'master@email.com', true);
+  });
+  it('Valid list field lookup', async function() {
+    var query, res;
+    query = [
+      {
+        field: 'email',
+        op: '$cont',
+        value: 'master'
+      }
+    ];
+    query = new URLSearchParams({
+      where: JSON.stringify(query)
+    });
+    await post("/product/insert?name=apples&price=2.50");
+    await post("/product/insert?name=oranges&price=4.50");
+    res = (await get(`/customer/find?${query}&from=product&local_field=products&foreign_field=name&as=productInfo`));
+    await post("/product/delete_all");
+    return assert.equal(res.status === 'ok' && res.statusCode === 200 && res.response[0].productInfo[0].name === 'apples', true);
+  });
+  it('Valid non-list field lookup', async function() {
+    var query, res;
+    query = [
+      {
+        field: 'email',
+        op: '$cont',
+        value: 'master'
+      }
+    ];
+    query = new URLSearchParams({
+      where: JSON.stringify(query)
+    });
+    await post("/info/insert?email=master@email.com&location=NY");
+    res = (await get(`/customer/find?${query}&from=info&local_field=email&foreign_field=email&as=emailInfo`));
+    await post("/info/delete_all");
+    return assert.equal(res.status === 'ok' && res.statusCode === 200 && res.response[0].emailInfo.location === 'NY', true);
+  });
+  it('Valid find w/ no records found', async function() {
+    var query, res;
+    query = [
+      {
+        field: 'email',
+        op: '$cont',
+        value: 'debra'
+      }
+    ];
+    query = new URLSearchParams({
+      where: JSON.stringify(query)
+    });
+    res = (await get(`/customer/find?${query}`));
+    return assert.equal(res.status === 'ok' && res.statusCode === 200 && res.response.length === 0, true);
+  });
   it('Valid delete', async function() {
     var res;
     res = (await remove("/customer/delete?name=tom"));
@@ -404,8 +554,12 @@ describe('API Methods', function() {
 
 // Cleanup
 after(function(done) {
-  if (fs.existsSync('./models/customer.js')) {
-    fs.unlinkSync('./models/customer.js');
+  var key, val;
+  for (key in models) {
+    val = models[key];
+    if (fs.existsSync(key)) {
+      fs.unlinkSync(key);
+    }
   }
   if (fs.existsSync('./models')) {
     fs.rmdirSync('./models');
