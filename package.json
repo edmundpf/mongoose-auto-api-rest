@@ -1,6 +1,6 @@
 {
 	"name": "mongoose-auto-api.rest",
-	"version": "0.0.6",
+	"version": "0.0.7",
 	"description": "Automatic Mongoose REST API - Rest API Module",
 	"main": "./js/index.js",
 	"files": [
@@ -39,7 +39,7 @@
 		"jsonwebtoken": "^8.5.1",
 		"mongoose": "^5.6.11",
 		"mongoose-auto-api.models": "0.0.4",
-		"mongoose-auto-api.validation": "0.0.1",
+		"mongoose-auto-api.validation": "0.0.2",
 		"print-tools-js": "^1.1.0",
 		"uuidv4": "^5.0.0"
 	},
