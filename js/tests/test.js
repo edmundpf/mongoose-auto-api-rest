@@ -357,10 +357,15 @@ describe('API Methods', function() {
     res = (await get("/customer/get_all"));
     return assert.equal(res.status === 'ok' && res.statusCode === 200 && res.response.length === 1 && (res.response[0]._id != null) && res.response[0].name === 'bob', true);
   });
-  it('Schema info', async function() {
+  it('Schema info - list fields', async function() {
     var res;
     res = (await get("/customer/schema"));
     return assert.equal(res.status === 'ok' && res.statusCode === 200 && res.response.schema.includes('name') && res.response.list_fields.includes('products') && res.response.primary_key === 'name', true);
+  });
+  it('Schema info - encrypted fields', async function() {
+    var res;
+    res = (await get("/user_auth/schema"));
+    return assert.equal(res.status === 'ok' && res.statusCode === 200 && res.response.schema.includes('username') && res.response.encrypt_fields.includes('password') && res.response.primary_key === 'username', true);
   });
   it('Sterilize - remove obsolete, and set fields for all documents', async function() {
     var hasChanges, i, len, ref, res, user, users;

@@ -198,8 +198,7 @@ app.all("/:path(#{Object.keys(appRoutes).join('|')})/:method(#{normalMethods.joi
 			await responseFormat(
 				schemaAsync,
 				[
-					model
-					primaryKey
+					modelInfo
 				],
 				req,
 				res

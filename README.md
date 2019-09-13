@@ -115,7 +115,7 @@ $ api = require('mongoose-auto-api.rest')
 		* if local field is not a list, joined field will return an object
 * `x/schema`
 	* Gets schema information
-	* Success: `{ schema: [], primary_key, list_fields: [] }`
+	* Success: `{ schema: [], primary_key, list_fields: [], encrypt_fields: [] }`
 * `x/sterilize`
 	* Removes obsolete fields and indexes after updating schema
 	* Sets value for given field for all documents (useful for updating old documents after adding schema)

@@ -477,7 +477,7 @@ describe 'API Methods', ->
 			true
 		)
 
-	it 'Schema info', ->
+	it 'Schema info - list fields', ->
 		res = await get("/customer/schema")
 		assert.equal(
 			res.status == 'ok' and
@@ -485,6 +485,17 @@ describe 'API Methods', ->
 			res.response.schema.includes('name') and
 			res.response.list_fields.includes('products') and
 			res.response.primary_key == 'name',
+			true
+		)
+
+	it 'Schema info - encrypted fields', ->
+		res = await get("/user_auth/schema")
+		assert.equal(
+			res.status == 'ok' and
+			res.statusCode == 200 and
+			res.response.schema.includes('username') and
+			res.response.encrypt_fields.includes('password') and
+			res.response.primary_key == 'username',
 			true
 		)
 

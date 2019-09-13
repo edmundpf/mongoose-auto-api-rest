@@ -167,7 +167,7 @@ app.all(`/:path(${Object.keys(appRoutes).join('|')})/:method(${normalMethods.joi
     return (await responseFormat(model.aggregate.bind(model), aggArgs, req, res, false));
   //: Get Schema Info
   } else if (req.params.method === 'schema') {
-    return (await responseFormat(schemaAsync, [model, primaryKey], req, res));
+    return (await responseFormat(schemaAsync, [modelInfo], req, res));
   //: Sterilize: removes fields not in schema, sets all query fields to specified value for all docs
   } else if (req.params.method === 'sterilize') {
     setDict = {};

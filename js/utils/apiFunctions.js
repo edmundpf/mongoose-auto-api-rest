@@ -39,26 +39,18 @@ errorObj = function(error) {
 //::: SCHEMA FUNCTIONS :::
 
 // Get Schema Info
-schemaInfo = function(model, primaryKey) {
-  var key, listFields, schema, value;
-  schema = model.schema.paths;
-  listFields = [];
-  for (key in schema) {
-    value = schema[key];
-    if ((value.$isMongooseArray != null) && value.$isMongooseArray) {
-      listFields.push(key);
-    }
-  }
+schemaInfo = function(model) {
   return {
-    schema: Object.keys(schema),
-    primary_key: primaryKey,
-    list_fields: listFields
+    schema: Object.keys(model.model.schema.paths),
+    primary_key: model.primaryKey,
+    list_fields: model.listFields,
+    encrypt_fields: model.encryptFields
   };
 };
 
 // Get Schema Info Async
-schemaAsync = function(model, primaryKey) {
-  return Promise.resolve(schemaInfo(model, primaryKey));
+schemaAsync = function(model) {
+  return Promise.resolve(schemaInfo(model));
 };
 
 // Update Query

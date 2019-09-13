@@ -1,6 +1,6 @@
 {
 	"name": "mongoose-auto-api.rest",
-	"version": "0.0.7",
+	"version": "0.0.8",
 	"description": "Automatic Mongoose REST API - Rest API Module",
 	"main": "./js/index.js",
 	"files": [

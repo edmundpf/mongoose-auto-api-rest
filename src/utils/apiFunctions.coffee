@@ -30,21 +30,17 @@ errorObj = (error) ->
 
 # Get Schema Info
 
-schemaInfo = (model, primaryKey) ->
-	schema = model.schema.paths
-	listFields = []
-	for key, value of schema
-		if value.$isMongooseArray? and value.$isMongooseArray
-			listFields.push(key)
+schemaInfo = (model) ->
 	return
-		schema: Object.keys(schema)
-		primary_key: primaryKey
-		list_fields: listFields
+		schema: Object.keys(model.model.schema.paths)
+		primary_key: model.primaryKey
+		list_fields: model.listFields
+		encrypt_fields: model.encryptFields
 
 # Get Schema Info Async
 
-schemaAsync = (model, primaryKey) ->
-	Promise.resolve schemaInfo(model, primaryKey)
+schemaAsync = (model) ->
+	Promise.resolve(schemaInfo(model))
 
 # Update Query
 
