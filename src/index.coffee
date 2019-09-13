@@ -47,6 +47,7 @@ mongooseConnect = () ->
 	try
 		return await mongoose.connect("mongodb://localhost:#{mongoosePort}/#{databaseName}",
 			useNewUrlParser: true,
+			useUnifiedTopology: true,
 			useCreateIndex: true,
 			useFindAndModify: false
 		)
