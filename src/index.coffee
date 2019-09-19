@@ -36,7 +36,7 @@ catch error
 
 
 serverPort = serverConfig.serverPort || process.env.PORT
-corsPort = serverConfig.corsPort
+corsPort = serverConfig.webPort
 mongoosePort = serverConfig.mongoosePort
 databaseName = serverConfig.databaseName
 userAuth = models.userAuth.model

@@ -30,7 +30,7 @@ $ api = require('mongoose-auto-api.rest')
 ## Auth Routes
 * `/login`
   * Parameters: `username, password`
-  * Success: `{ username, uid, accesstoken, expires_in }`
+  * Success: `{ username, uid, access_token, expires_in }`
   * Error: `{ messages: ["ERROR_MESSAGE"], codes: ["ERROR_CODE"] }`
   * Exception: `{ message: "ERROR_MESSAGE", code: "ERROR_CODE", trace: "STACK_TRACE" }`
 * `/signup`

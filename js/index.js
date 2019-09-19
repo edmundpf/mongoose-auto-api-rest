@@ -64,7 +64,7 @@ try {
 
 serverPort = serverConfig.serverPort || process.env.PORT;
 
-corsPort = serverConfig.corsPort;
+corsPort = serverConfig.webPort;
 
 mongoosePort = serverConfig.mongoosePort;
 
