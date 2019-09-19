@@ -35,17 +35,25 @@ $ api = require('mongoose-auto-api.rest')
   * Exception: `{ message: "ERROR_MESSAGE", code: "ERROR_CODE", trace: "STACK_TRACE" }`
 * `/signup`
   * Parameters: `username, password, secret_key`
-    * *username* and *password* must have at least 8 characters and *password* must have at least 1 number.
+    * *username* and *password* must have at least 8 characters and *password* must have at least 1 number and 1 special character.
     * *secret_key* is the secret key you set up with the CLI
 	* **This endpoint is self-protecting, after ONE user is added JWT will be required**
   * Success: `{ username, uid, access_token, expires_in }`
   * Error: `{ messages: ["ERROR_MESSAGE"], codes: ["ERROR_CODE"] }`
   * Exception: `{ message: "ERROR_MESSAGE", code: "ERROR_CODE", trace: "STACK_TRACE" }`
+* `/update_secret_key`
+	* Parameters: `key`
+		* *key* must have at least 8 characters, 1 number, and 1 special character
+	* **This endpoint is self-protecting, after ONE user is added JWT will be required**
+	* Success: 
+		* `{attributes...}` - first insert
+		* `{ n, nModified, ok }` - update after first insert
+  * Error: `{ messages: ["ERROR_MESSAGE"], codes: ["ERROR_CODE"] }`
+  * Exception: `{ message: "ERROR_MESSAGE", code: "ERROR_CODE", trace: "STACK_TRACE" }`	
 * `/update_password`
   * **JWT Required**
   * Parameters: `username, current_password, password`
       * *password* must have at least 8 characters and must have at least 1 number.
-	* **This endpoint is self-protecting, after ONE secret key is added JWT will be required**
   * Success: `{ status: 'ok', response: { message: 'Password updated.'} }`
   * Error: `{ messages: ["ERROR_MESSAGE"], codes: ["ERROR_CODE"] }`
   * Exception: `{ message: "ERROR_MESSAGE", code: "ERROR_CODE", trace: "STACK_TRACE" }`

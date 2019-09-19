@@ -8,7 +8,8 @@ api = server = port = url = null
 USERNAME = 'user@email.com'
 PASSWORD1 = 'testPass1!'
 PASSWORD2 = 'testPass2!'
-SECRET_KEY = 'secretKeyTest'
+SECRET_KEY1 = 'secretKeyTest1!'
+SECRET_KEY2 = 'secretKeyTest2!'
 ACCESS_TOKEN = ''
 
 customerModel = """
@@ -271,18 +272,35 @@ describe 'Admin setup', ->
 			res,
 			'Not Authorized'
 		)
-	it 'Init - Secret Key endpoint not protected', ->
+	it 'Init - Secret Key endpoint protected', ->
 		res = await post('/secret_key/insert')
 		errorAssert(
 			res,
-			'validation failed'
+			'No token provided'
 		)
-	it 'Set Secret Key', ->
-		res = await post("/secret_key/insert?key=#{SECRET_KEY}")
+	it 'Init - Update Secret Key endpoint not protected', ->
+		res = await post('/update_secret_key')
+		errorAssert(
+			res,
+			'Cannot read property'
+		)
+
+	it 'Create Secret Key - Invalid Key', ->
+		res = await post("/update_secret_key?key=test123")
+		errorCodeAssert(
+			res,
+			[
+				'KEY_INVALID_LENGTH'
+				'KEY_INVALID_PASSWORD'
+			]
+		)
+
+	it 'Create Secret Key', ->
+		res = await post("/update_secret_key?key=#{SECRET_KEY1}")
 		createAssert(res)
 
-	it 'Secret Key endpoint protected', ->
-		res = await post('/secret_key/insert')
+	it 'Update Secret Key endpoint protected', ->
+		res = await post('/update_secret_key')
 		errorAssert(
 			res,
 			'No token provided'
@@ -296,7 +314,7 @@ describe 'Admin setup', ->
 		)
 
 	it 'Signup - Invalid Username and Password', ->
-		res = await post("/signup?username=user&password=testPassword&secret_key=#{SECRET_KEY}")
+		res = await post("/signup?username=user&password=testPassword&secret_key=#{SECRET_KEY1}")
 		errorCodeAssert(
 			res,
 			[
@@ -306,7 +324,7 @@ describe 'Admin setup', ->
 		)
 
 	it 'Valid Signup', ->
-		res = await post("/signup?username=#{USERNAME}&password=#{PASSWORD1}&secret_key=#{SECRET_KEY}")
+		res = await post("/signup?username=#{USERNAME}&password=#{PASSWORD1}&secret_key=#{SECRET_KEY1}")
 		if res.response.access_token?
 			ACCESS_TOKEN = res.response.access_token
 		assert.equal(
@@ -343,6 +361,24 @@ describe 'Admin validation', ->
 		okayAssert(
 			res,
 			'Token verified'
+		)
+
+	it 'Update Secret Key', ->
+		res = await post("/update_secret_key?key=#{SECRET_KEY2}")
+		okayModAssert(
+			res,
+			'nModified',
+			1
+		)
+
+	it 'Valid Signup after Secret Key update', ->
+		res = await post("/signup?username=zelda@email.com&password=testPassword123!&secret_key=#{SECRET_KEY2}")
+		if res.response.access_token?
+			ACCESS_TOKEN = res.response.access_token
+		assert.equal(
+			res.status == 'ok' and
+			res.response.access_token?,
+			true
 		)
 
 	it 'Login - User not found', ->
@@ -812,13 +848,13 @@ describe 'API Methods', ->
 		)
 
 	it 'Admin Auth cleanup', ->
-		user = await remove('/secret_key/delete_all')
-		secret = await remove('/user_auth/delete_all')
+		user = await remove('/user_auth/delete_all')
+		secret = await remove('/secret_key/delete_all')
 		p.success('Secret key and User Auth cleanup completed.')
 		assert.equal(
 			user.status == 'ok' and
 			user.statusCode == 200 and
-			user.response.deletedCount == 1 and
+			user.response.deletedCount == 2 and
 			secret.status == 'ok' and
 			secret.statusCode == 200 and
 			secret.response.deletedCount == 1,

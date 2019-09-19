@@ -18,6 +18,7 @@ errorObj = require('./utils/apiFunctions').errorObj
 schemaAsync = require('./utils/apiFunctions').schemaAsync
 updateQuery = require('./utils/apiFunctions').updateQuery
 allowedPassword = require('./utils/apiFunctions').allowedPassword
+allowedSecretKey = require('./utils/apiFunctions').allowedSecretKey
 responseFormat = require('./utils/apiFunctions').responseFormat
 incorrectSecretKey = require('./utils/apiFunctions').incorrectSecretKey
 incorrectUserOrPass = require('./utils/apiFunctions').incorrectUserOrPass
@@ -355,6 +356,37 @@ app.all('/login', (req, res) =>
 		)
 )
 
+#: Edit Secret Key
+
+app.all('/:path(update_secret_key)', verifyToken, (req, res) =>
+	try
+
+		isValid = allowedSecretKey(req)
+		if isValid != true
+			return res.status(401).json(isValid)
+
+		key = await secretKey.find({})
+		if key.length == 0
+			response = await secretKey.create(req.query)
+		else
+			response = await secretKey.updateOne(
+				{
+					key: key[key.length - 1].key
+				},
+				req.query
+			)
+		return res.json(
+			status: 'ok'
+			response: response
+		)
+
+	catch error
+		return res.status(500).json(
+			status: 'error'
+			response: errorObj(error)
+		)
+)
+
 #: Sign Up
 
 app.all('/:path(signup)', verifyToken, (req, res) =>
@@ -370,7 +402,7 @@ app.all('/:path(signup)', verifyToken, (req, res) =>
 				if !key_match
 					return incorrectSecretKey(res)
 
-			isValid = allowedPassword(req, res)
+			isValid = allowedPassword(req)
 			if isValid != true
 				return res.status(401).json(isValid)
 			response = await userAuth.create(req.query)
@@ -382,10 +414,10 @@ app.all('/:path(signup)', verifyToken, (req, res) =>
 					response: token
 				)
 			else
-			return res.status(401).json(
-				status: 'error'
-				response: response
-			)
+				return res.status(401).json(
+					status: 'error'
+					response: response
+				)
 
 		else
 			return res.status(401).json(
@@ -422,7 +454,7 @@ app.all('/update_password', (req, res) =>
 		else if !req.query.current_password?
 			return noCurrentPass(res)
 
-		isValid = allowedPassword(req, res)
+		isValid = allowedPassword(req)
 		if isValid != true
 			return res.status(401).json(isValid)
 		passUpdate = await userAuth.updateOne(

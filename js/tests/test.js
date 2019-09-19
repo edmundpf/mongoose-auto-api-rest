@@ -1,4 +1,4 @@
-var ACCESS_TOKEN, PASSWORD1, PASSWORD2, SECRET_KEY, USERNAME, a, api, assert, createAssert, customerModel, errorAssert, errorCodeAssert, errorExistsAssert, findTest, fs, get, infoModel, models, okayAssert, okayExistsAssert, okayModAssert, p, port, post, productModel, remove, request, server, should, url;
+var ACCESS_TOKEN, PASSWORD1, PASSWORD2, SECRET_KEY1, SECRET_KEY2, USERNAME, a, api, assert, createAssert, customerModel, errorAssert, errorCodeAssert, errorExistsAssert, findTest, fs, get, infoModel, models, okayAssert, okayExistsAssert, okayModAssert, p, port, post, productModel, remove, request, server, should, url;
 
 a = require('axios');
 
@@ -18,7 +18,9 @@ PASSWORD1 = 'testPass1!';
 
 PASSWORD2 = 'testPass2!';
 
-SECRET_KEY = 'secretKeyTest';
+SECRET_KEY1 = 'secretKeyTest1!';
+
+SECRET_KEY2 = 'secretKeyTest2!';
 
 ACCESS_TOKEN = '';
 
@@ -215,19 +217,29 @@ describe('Admin setup', function() {
     res = (await post('/signup'));
     return errorAssert(res, 'Not Authorized');
   });
-  it('Init - Secret Key endpoint not protected', async function() {
+  it('Init - Secret Key endpoint protected', async function() {
     var res;
     res = (await post('/secret_key/insert'));
-    return errorAssert(res, 'validation failed');
+    return errorAssert(res, 'No token provided');
   });
-  it('Set Secret Key', async function() {
+  it('Init - Update Secret Key endpoint not protected', async function() {
     var res;
-    res = (await post(`/secret_key/insert?key=${SECRET_KEY}`));
+    res = (await post('/update_secret_key'));
+    return errorAssert(res, 'Cannot read property');
+  });
+  it('Create Secret Key - Invalid Key', async function() {
+    var res;
+    res = (await post("/update_secret_key?key=test123"));
+    return errorCodeAssert(res, ['KEY_INVALID_LENGTH', 'KEY_INVALID_PASSWORD']);
+  });
+  it('Create Secret Key', async function() {
+    var res;
+    res = (await post(`/update_secret_key?key=${SECRET_KEY1}`));
     return createAssert(res);
   });
-  it('Secret Key endpoint protected', async function() {
+  it('Update Secret Key endpoint protected', async function() {
     var res;
-    res = (await post('/secret_key/insert'));
+    res = (await post('/update_secret_key'));
     return errorAssert(res, 'No token provided');
   });
   it('Signup - Incorrect Secret Key', async function() {
@@ -237,12 +249,12 @@ describe('Admin setup', function() {
   });
   it('Signup - Invalid Username and Password', async function() {
     var res;
-    res = (await post(`/signup?username=user&password=testPassword&secret_key=${SECRET_KEY}`));
+    res = (await post(`/signup?username=user&password=testPassword&secret_key=${SECRET_KEY1}`));
     return errorCodeAssert(res, ['USERNAME_INVALID_EMAIL', 'PASSWORD_INVALID_PASSWORD']);
   });
   return it('Valid Signup', async function() {
     var res;
-    res = (await post(`/signup?username=${USERNAME}&password=${PASSWORD1}&secret_key=${SECRET_KEY}`));
+    res = (await post(`/signup?username=${USERNAME}&password=${PASSWORD1}&secret_key=${SECRET_KEY1}`));
     if (res.response.access_token != null) {
       ACCESS_TOKEN = res.response.access_token;
     }
@@ -272,6 +284,19 @@ describe('Admin validation', function() {
     var res;
     res = (await get('/verify_token'));
     return okayAssert(res, 'Token verified');
+  });
+  it('Update Secret Key', async function() {
+    var res;
+    res = (await post(`/update_secret_key?key=${SECRET_KEY2}`));
+    return okayModAssert(res, 'nModified', 1);
+  });
+  it('Valid Signup after Secret Key update', async function() {
+    var res;
+    res = (await post(`/signup?username=zelda@email.com&password=testPassword123!&secret_key=${SECRET_KEY2}`));
+    if (res.response.access_token != null) {
+      ACCESS_TOKEN = res.response.access_token;
+    }
+    return assert.equal(res.status === 'ok' && (res.response.access_token != null), true);
   });
   it('Login - User not found', async function() {
     var res;
@@ -550,10 +575,10 @@ describe('API Methods', function() {
   });
   return it('Admin Auth cleanup', async function() {
     var secret, user;
-    user = (await remove('/secret_key/delete_all'));
-    secret = (await remove('/user_auth/delete_all'));
+    user = (await remove('/user_auth/delete_all'));
+    secret = (await remove('/secret_key/delete_all'));
     p.success('Secret key and User Auth cleanup completed.');
-    return assert.equal(user.status === 'ok' && user.statusCode === 200 && user.response.deletedCount === 1 && secret.status === 'ok' && secret.statusCode === 200 && secret.response.deletedCount === 1, true);
+    return assert.equal(user.status === 'ok' && user.statusCode === 200 && user.response.deletedCount === 2 && secret.status === 'ok' && secret.statusCode === 200 && secret.response.deletedCount === 1, true);
   });
 });
 

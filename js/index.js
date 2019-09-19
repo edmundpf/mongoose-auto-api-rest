@@ -1,4 +1,4 @@
-var allowedPassword, app, appRoutes, assert, bcrypt, cors, corsPort, databaseName, db, error, errorObj, express, incorrectSecretKey, incorrectUserOrPass, listMethods, listRoutes, models, mongoose, mongooseConnect, mongoosePort, noCurrentPass, normalMethods, normalRoutes, objOmit, p, parseQuery, responseFormat, routeMethods, schemaAsync, secretKey, serverConfig, serverPort, signToken, updateQuery, userAuth, userNotFound, verifyToken;
+var allowedPassword, allowedSecretKey, app, appRoutes, assert, bcrypt, cors, corsPort, databaseName, db, error, errorObj, express, incorrectSecretKey, incorrectUserOrPass, listMethods, listRoutes, models, mongoose, mongooseConnect, mongoosePort, noCurrentPass, normalMethods, normalRoutes, objOmit, p, parseQuery, responseFormat, routeMethods, schemaAsync, secretKey, serverConfig, serverPort, signToken, updateQuery, userAuth, userNotFound, verifyToken;
 
 cors = require('cors');
 
@@ -35,6 +35,8 @@ schemaAsync = require('./utils/apiFunctions').schemaAsync;
 updateQuery = require('./utils/apiFunctions').updateQuery;
 
 allowedPassword = require('./utils/apiFunctions').allowedPassword;
+
+allowedSecretKey = require('./utils/apiFunctions').allowedSecretKey;
 
 responseFormat = require('./utils/apiFunctions').responseFormat;
 
@@ -297,6 +299,35 @@ app.all('/login', async(req, res) => {
   }
 });
 
+//: Edit Secret Key
+app.all('/:path(update_secret_key)', verifyToken, async(req, res) => {
+  var isValid, key, response;
+  try {
+    isValid = allowedSecretKey(req);
+    if (isValid !== true) {
+      return res.status(401).json(isValid);
+    }
+    key = (await secretKey.find({}));
+    if (key.length === 0) {
+      response = (await secretKey.create(req.query));
+    } else {
+      response = (await secretKey.updateOne({
+        key: key[key.length - 1].key
+      }, req.query));
+    }
+    return res.json({
+      status: 'ok',
+      response: response
+    });
+  } catch (error1) {
+    error = error1;
+    return res.status(500).json({
+      status: 'error',
+      response: errorObj(error)
+    });
+  }
+});
+
 //: Sign Up
 app.all('/:path(signup)', verifyToken, async(req, res) => {
   var isValid, key, key_match, response, token;
@@ -309,7 +340,7 @@ app.all('/:path(signup)', verifyToken, async(req, res) => {
           return incorrectSecretKey(res);
         }
       }
-      isValid = allowedPassword(req, res);
+      isValid = allowedPassword(req);
       if (isValid !== true) {
         return res.status(401).json(isValid);
       }
@@ -321,12 +352,11 @@ app.all('/:path(signup)', verifyToken, async(req, res) => {
           response: token
         });
       } else {
-
+        return res.status(401).json({
+          status: 'error',
+          response: response
+        });
       }
-      return res.status(401).json({
-        status: 'error',
-        response: response
-      });
     } else {
       return res.status(401).json({
         status: 'error',
@@ -361,7 +391,7 @@ app.all('/update_password', async(req, res) => {
     } else if (req.query.current_password == null) {
       return noCurrentPass(res);
     }
-    isValid = allowedPassword(req, res);
+    isValid = allowedPassword(req);
     if (isValid !== true) {
       return res.status(401).json(isValid);
     }

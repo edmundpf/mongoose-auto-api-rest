@@ -1,4 +1,4 @@
-var AUTH_TOKEN, allowedPassword, errorObj, incorrectSecretKey, incorrectUserOrPass, jwt, models, noCurrentPass, objOmit, responseFormat, schemaAsync, schemaInfo, secretKey, signToken, updateQuery, userAuth, userNotFound, uuid, validation, verifyToken;
+var AUTH_TOKEN, allowedPassword, allowedSecretKey, errorObj, incorrectSecretKey, incorrectUserOrPass, jwt, models, noCurrentPass, objOmit, responseFormat, schemaAsync, schemaInfo, secretKey, signToken, updateQuery, userAuth, userNotFound, uuid, validation, verifyToken;
 
 jwt = require('jsonwebtoken');
 
@@ -64,11 +64,25 @@ updateQuery = function(req, primaryKey) {
 };
 
 // Allowed Password Check
-allowedPassword = function(req, res) {
+allowedPassword = function(req) {
   var error, passVal, userVal;
   userVal = validation.userVal(req.query.username, 'username');
   passVal = validation.passVal(req.query.password, 'password');
   error = validation.joinValidations([userVal, passVal]);
+  if (!error.valid) {
+    return {
+      status: 'error',
+      response: error
+    };
+  } else {
+    return true;
+  }
+};
+
+// Allowed Secret Key
+allowedSecretKey = function(req) {
+  var error;
+  error = validation.passVal(req.query.key, 'key');
   if (!error.valid) {
     return {
       status: 'error',
@@ -179,7 +193,7 @@ signToken = function(user) {
 verifyToken = async function(req, res, next) {
   var getAll, token;
   if (req.params.path != null) {
-    if (req.params.path === 'secret_key') {
+    if (req.params.path === 'update_secret_key') {
       getAll = (await secretKey.find({}));
       if (getAll.length <= 0) {
         return next();
@@ -223,6 +237,6 @@ verifyToken = async function(req, res, next) {
 };
 
 //::: EXPORTS :::
-module.exports = {objOmit, errorObj, schemaAsync, updateQuery, allowedPassword, responseFormat, incorrectSecretKey, incorrectUserOrPass, userNotFound, noCurrentPass, signToken, verifyToken};
+module.exports = {objOmit, errorObj, schemaAsync, updateQuery, allowedPassword, allowedSecretKey, responseFormat, incorrectSecretKey, incorrectUserOrPass, userNotFound, noCurrentPass, signToken, verifyToken};
 
 //::: End Program :::

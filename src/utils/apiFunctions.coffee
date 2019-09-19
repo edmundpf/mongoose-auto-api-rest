@@ -53,7 +53,7 @@ updateQuery = (req, primaryKey) ->
 
 # Allowed Password Check
 
-allowedPassword = (req, res) ->
+allowedPassword = (req) ->
 	userVal = validation.userVal(
 		req.query.username,
 		'username'
@@ -64,10 +64,23 @@ allowedPassword = (req, res) ->
 	)
 	error = validation.joinValidations([userVal, passVal])
 	if !error.valid
-		return(
+		return
 			status: 'error'
 			response: error
-		)
+	else
+		return true
+
+# Allowed Secret Key
+
+allowedSecretKey = (req) ->
+	error = validation.passVal(
+		req.query.key,
+		'key'
+	)
+	if !error.valid
+		return
+			status: 'error'
+			response: error
 	else
 		return true
 
@@ -155,7 +168,7 @@ signToken = (user) ->
 
 verifyToken = (req, res, next) ->
 	if req.params.path?
-		if req.params.path == 'secret_key'
+		if req.params.path == 'update_secret_key'
 			getAll = await secretKey.find({})
 			if getAll.length <= 0
 				return next()
@@ -200,6 +213,7 @@ module.exports = {
 	schemaAsync,
 	updateQuery,
 	allowedPassword,
+	allowedSecretKey,
 	responseFormat,
 	incorrectSecretKey,
 	incorrectUserOrPass,
