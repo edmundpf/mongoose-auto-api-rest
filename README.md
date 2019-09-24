@@ -21,7 +21,7 @@ $ api = require('mongoose-auto-api.rest')
 ## General
 * JSON response will contain `{"status": "ok"}` on success, and `{"status": "error"}` on error.
 * JSON response will contain *response* field with extra data i.e. `{"status": "ok", "response": {"message": "success"}}`
-* JSON response will contain *refresh_token* field with refresh token: `{"refresh_token": { username, uid, accesstoken, expires_in }}`
+* JSON response will contain *refresh_token* field with refresh token: `{"refresh_token": { username, uid, access_token, expires_in }}`
 * Routes require JWT to authenticate
   * Token can be sent in request with parameter `?auth_token=xxx`, in *x-access-token* header, or in *authorization* header
   * No token error: `{ status: 'error', response: { message: 'No token provided.'}}`
