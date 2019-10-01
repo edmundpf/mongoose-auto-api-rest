@@ -38,7 +38,7 @@ models = {
 
 //: Start Server Hook
 before(function(done) {
-  var key, val;
+  var key, restServer, val;
   this.timeout(10000);
   if (!fs.existsSync('./models')) {
     fs.mkdirSync('./models');
@@ -49,8 +49,9 @@ before(function(done) {
       fs.writeFileSync(key, `module.exports = ${val}`);
     }
   }
-  api = require('../index').app;
-  port = require('../index').config.serverPort;
+  restServer = require('../index');
+  api = restServer.app;
+  port = restServer.config.serverPort;
   url = `http://localhost:${port}`;
   return done();
 });

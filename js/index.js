@@ -1,4 +1,4 @@
-var allowedPassword, allowedSecretKey, app, appRoutes, assert, bcrypt, cors, corsPort, databaseName, db, error, errorObj, express, incorrectSecretKey, incorrectUserOrPass, listMethods, listRoutes, models, mongoose, mongooseConnect, mongoosePort, noCurrentPass, normalMethods, normalRoutes, objOmit, p, parseQuery, responseFormat, routeMethods, schemaAsync, secretKey, serverConfig, serverPort, signToken, updateQuery, userAuth, userNotFound, verifyToken;
+var allowedPassword, allowedSecretKey, app, appRoutes, assert, bcrypt, cors, corsPort, databaseName, db, error, errorObj, express, incorrectSecretKey, incorrectUserOrPass, listMethods, listRoutes, models, mongoose, mongooseConnect, mongoosePort, noCurrentPass, normalMethods, normalRoutes, objOmit, p, parseQuery, responseFormat, routeMethods, schemaAsync, secretKey, serverConfig, serverPort, signToken, updateQuery, userAuth, userNotFound, verifyToken, webServer;
 
 cors = require('cors');
 
@@ -74,6 +74,8 @@ userAuth = models.userAuth.model;
 
 secretKey = models.secretKey.model;
 
+webServer = serverConfig.external ? '0.0.0.0' : 'localhost';
+
 //: MongoDB Config
 mongooseConnect = async function() {
   try {
@@ -96,7 +98,7 @@ db = mongooseConnect();
 app = express();
 
 app.use(cors({
-  origin: `http://localhost:${corsPort}`,
+  origin: `http://${webServer}:${corsPort}`,
   exposedHeaders: ['X-Access-Token']
 }));
 

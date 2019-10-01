@@ -89,8 +89,9 @@ before((done) ->
 				key,
 				"module.exports = #{val}"
 			)
-	api = require('../index').app
-	port = require('../index').config.serverPort
+	restServer = require('../index')
+	api = restServer.app
+	port = restServer.config.serverPort
 	url = "http://localhost:#{port}"
 	done()
 )

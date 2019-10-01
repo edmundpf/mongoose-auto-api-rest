@@ -2,6 +2,7 @@
 	"serverPort": 4000,
 	"webPort": 3000,
 	"mongoosePort": 27017,
+	"external": false,
 	"databaseName": "default_database",
 	"siteTitle": "Default Title",
 	"siteDesc": "Default Description",

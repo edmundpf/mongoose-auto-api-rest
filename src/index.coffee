@@ -41,6 +41,7 @@ mongoosePort = serverConfig.mongoosePort
 databaseName = serverConfig.databaseName
 userAuth = models.userAuth.model
 secretKey = models.secretKey.model
+webServer = if serverConfig.external then '0.0.0.0' else 'localhost'
 
 #: MongoDB Config
 
@@ -62,7 +63,7 @@ db = mongooseConnect()
 app = express()
 app.use(
 	cors(
-		origin: "http://localhost:#{corsPort}",
+		origin: "http://#{webServer}:#{corsPort}",
 		exposedHeaders: [ 'X-Access-Token' ],
 	)
 )
