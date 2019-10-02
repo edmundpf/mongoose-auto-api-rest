@@ -4,6 +4,7 @@ bcrypt = require('bcrypt')
 express = require('express')
 p = require('print-tools-js')
 mongoose = require('mongoose')
+publicIp = require('public-ip')
 models = require('mongoose-auto-api.models')
 
 listRoutes = require('./utils/routeWrapper').listRoutes
@@ -34,13 +35,14 @@ catch error
 	serverConfig = require('./data/defaultConfig.json')
 	p.warning('Could not load app config file, using default configuration.')
 
-
 serverPort = serverConfig.serverPort || process.env.PORT
 corsPort = serverConfig.webPort
 mongoosePort = serverConfig.mongoosePort
 databaseName = serverConfig.databaseName
 userAuth = models.userAuth.model
 secretKey = models.secretKey.model
+serverAddress = null
+app = express()
 
 #: MongoDB Config
 
@@ -56,455 +58,470 @@ mongooseConnect = () ->
 		p.error('MongoDB Service is not started.')
 		process.exit(1)
 
-#: Server Connect
+#: Init Server
 
-db = mongooseConnect()
-app = express()
-app.use(
-	cors(
-		origin: [
-			"http://localhost:#{corsPort}"
-			"http://0.0.0.0:#{corsPort}"
-		]
-		exposedHeaders: [ 'X-Access-Token' ],
-	)
-)
-app.listen(serverPort, =>
-	p.titleBox(
-		'Data API Server'
-		titleDesc: "Running on port #{serverPort}"
-		tagLine: "Connecting to Mongo database: #{databaseName} on port #{mongoosePort}"
-	)
-)
+init = () ->
 
-#: All Routes
-
-app.all("/:path(#{Object.keys(appRoutes).join('|')})/:method(#{normalMethods.join('|')})",
-	verifyToken, (req, res) =>
-
-		modelInfo = appRoutes[req.params.path]
-		model = modelInfo.model
-		primaryKey = modelInfo.primaryKey
-
-		#: Insert
-
-		if req.params.method == 'insert'
-			await responseFormat(
-				model.create.bind(model),
-				[req.query],
-				req,
-				res
-			)
-
-		#: Update
-
-		else if req.params.method == 'update'
-			await responseFormat(
-				model.updateOne.bind(model),
-				[
-					{
-						[primaryKey]: req.query[primaryKey]
-					},
-					updateQuery(req, primaryKey)
-				],
-				req,
-				res
-			)
-
-		#: Delete
-
-		else if req.params.method == 'delete'
-			await responseFormat(
-				model.deleteOne.bind(model),
-				[
-					{
-						[primaryKey]: req.query[primaryKey]
-					}
-				],
-				req,
-				res
-			)
-
-		#: Delete All
-
-		else if req.params.method == 'delete_all'
-			await responseFormat(
-				model.deleteMany.bind(model),
-				[{}],
-				req,
-				res
-			)
-
-		#: Get
-
-		else if req.params.method == 'get'
-			await responseFormat(
-				model.find.bind(model),
-				[
-					{
-						[primaryKey]: req.query[primaryKey]
-					}
-				],
-				req,
-				res
-			)
-
-		#: Get All
-
-		else if req.params.method == 'get_all'
-			await responseFormat(
-				model.find.bind(model),
-				[{}],
-				req,
-				res
-			)
-
-		#: Find
-
-		else if req.params.method == 'find'
-
-			if req.query.local_field? and req.query.from? and req.query.foreign_field? and req.query.as?
-				lookup =
-					$lookup:
-						from: req.query.from
-						localField: req.query.local_field
-						foreignField: req.query.foreign_field
-						as: req.query.as
-				if modelInfo.listFields.includes(req.query.local_field)
-					aggArgs = [
-						parseQuery(model, req.query.where),
-						lookup
-					]
-				else
-					unwind =
-						$unwind: "$#{req.query.as}"
-					aggArgs = [
-						parseQuery(model, req.query.where),
-						lookup,
-						unwind
-					]
-
-			else
-				aggArgs = [
-					parseQuery(model, req.query.where)
-				]
-
-			await responseFormat(
-				model.aggregate.bind(model),
-				aggArgs,
-				req,
-				res,
-				false
-			)
-
-		#: Get Schema Info
-
-		else if req.params.method == 'schema'
-			await responseFormat(
-				schemaAsync,
-				[
-					modelInfo
-				],
-				req,
-				res
-			)
-
-		#: Sterilize: removes fields not in schema, sets all query fields to specified value for all docs
-
-		else if req.params.method == 'sterilize'
-			setDict = {}
-			unsetDict = {}
-			normalDict = {}
-			mongoFields = [
-				'_id',
-				'createdAt',
-				'updatedAt',
-				'uid',
-				'__v'
+	serverAddress = await publicIp.v4()
+	await mongooseConnect()
+	app.use(
+		cors(
+			origin: [
+				"http://localhost:#{corsPort}"
+				"http://#{serverAddress}:#{corsPort}"
 			]
-			allFields = [
-				...mongoFields
-				...modelInfo.allFields
-			]
-			listFields = modelInfo.listFields
-			records = await model.find({}).lean()
-			for record in records
-				for key of record
-					if !allFields.includes(key) and !Object.keys(unsetDict).includes(key)
-						unsetDict[key] = 1
-			for field, val of req.query
-				if listFields.includes(field)
-					setDict[field] = val.split(',')
-				else
-					normalDict[field] = val
-			await model.collection.dropIndexes()
-			await responseFormat(
-				model.updateMany.bind(model),
-				[
-					{},
-					{
-						...normalDict,
-						$set: setDict,
-						$unset: unsetDict,
-					},
-					{
-						multi: true,
-						strict: false
-					}
-				],
-				req,
-				res
-			)
-)
+			exposedHeaders: [ 'X-Access-Token' ],
+		)
+	)
 
-#: List Routes
+#: Start Server
 
-app.all("/:path(#{Object.keys(listRoutes).join('|')})/:method(#{listMethods.join('|')})",
-	verifyToken, (req, res) =>
+start = () ->
 
-		model = appRoutes[req.params.path].model
-		primaryKey = appRoutes[req.params.path].primaryKey
+	app.listen(serverPort, =>
+		p.success("Public IP: #{serverAddress}", log: false)
+		p.titleBox(
+			'Data API Server'
+			titleDesc: "Running on port #{serverPort}"
+			tagLine: "Connecting to Mongo database: #{databaseName} on port #{mongoosePort}"
+		)
+	)
 
-		if ['push', 'push_unique', 'set'].includes(req.params.method)
-			updateDict = {}
-			for key of req.query
-				if ![primaryKey, 'auth_token', 'refresh_token'].includes(key)
-					if req.params.method != 'set'
-						updateDict[key] =
-							$each: req.query[key].split(',')
+	#: All Routes
+
+	app.all("/:path(#{Object.keys(appRoutes).join('|')})/:method(#{normalMethods.join('|')})",
+		verifyToken, (req, res) =>
+
+			modelInfo = appRoutes[req.params.path]
+			model = modelInfo.model
+			primaryKey = modelInfo.primaryKey
+
+			#: Insert
+
+			if req.params.method == 'insert'
+				await responseFormat(
+					model.create.bind(model),
+					[req.query],
+					req,
+					res
+				)
+
+			#: Update
+
+			else if req.params.method == 'update'
+				await responseFormat(
+					model.updateOne.bind(model),
+					[
+						{
+							[primaryKey]: req.query[primaryKey]
+						},
+						updateQuery(req, primaryKey)
+					],
+					req,
+					res
+				)
+
+			#: Delete
+
+			else if req.params.method == 'delete'
+				await responseFormat(
+					model.deleteOne.bind(model),
+					[
+						{
+							[primaryKey]: req.query[primaryKey]
+						}
+					],
+					req,
+					res
+				)
+
+			#: Delete All
+
+			else if req.params.method == 'delete_all'
+				await responseFormat(
+					model.deleteMany.bind(model),
+					[{}],
+					req,
+					res
+				)
+
+			#: Get
+
+			else if req.params.method == 'get'
+				await responseFormat(
+					model.find.bind(model),
+					[
+						{
+							[primaryKey]: req.query[primaryKey]
+						}
+					],
+					req,
+					res
+				)
+
+			#: Get All
+
+			else if req.params.method == 'get_all'
+				await responseFormat(
+					model.find.bind(model),
+					[{}],
+					req,
+					res
+				)
+
+			#: Find
+
+			else if req.params.method == 'find'
+
+				if req.query.local_field? and req.query.from? and req.query.foreign_field? and req.query.as?
+					lookup =
+						$lookup:
+							from: req.query.from
+							localField: req.query.local_field
+							foreignField: req.query.foreign_field
+							as: req.query.as
+					if modelInfo.listFields.includes(req.query.local_field)
+						aggArgs = [
+							parseQuery(model, req.query.where),
+							lookup
+						]
 					else
-						if req.query[key] != '[]'
-							updateDict[key] = req.query[key].split(',')
+						unwind =
+							$unwind: "$#{req.query.as}"
+						aggArgs = [
+							parseQuery(model, req.query.where),
+							lookup,
+							unwind
+						]
+
+				else
+					aggArgs = [
+						parseQuery(model, req.query.where)
+					]
+
+				await responseFormat(
+					model.aggregate.bind(model),
+					aggArgs,
+					req,
+					res,
+					false
+				)
+
+			#: Get Schema Info
+
+			else if req.params.method == 'schema'
+				await responseFormat(
+					schemaAsync,
+					[
+						modelInfo
+					],
+					req,
+					res
+				)
+
+			#: Sterilize: removes fields not in schema, sets all query fields to specified value for all docs
+
+			else if req.params.method == 'sterilize'
+				setDict = {}
+				unsetDict = {}
+				normalDict = {}
+				mongoFields = [
+					'_id',
+					'createdAt',
+					'updatedAt',
+					'uid',
+					'__v'
+				]
+				allFields = [
+					...mongoFields
+					...modelInfo.allFields
+				]
+				listFields = modelInfo.listFields
+				records = await model.find({}).lean()
+				for record in records
+					for key of record
+						if !allFields.includes(key) and !Object.keys(unsetDict).includes(key)
+							unsetDict[key] = 1
+				for field, val of req.query
+					if listFields.includes(field)
+						setDict[field] = val.split(',')
+					else
+						normalDict[field] = val
+				await model.collection.dropIndexes()
+				await responseFormat(
+					model.updateMany.bind(model),
+					[
+						{},
+						{
+							...normalDict,
+							$set: setDict,
+							$unset: unsetDict,
+						},
+						{
+							multi: true,
+							strict: false
+						}
+					],
+					req,
+					res
+				)
+	)
+
+	#: List Routes
+
+	app.all("/:path(#{Object.keys(listRoutes).join('|')})/:method(#{listMethods.join('|')})",
+		verifyToken, (req, res) =>
+
+			model = appRoutes[req.params.path].model
+			primaryKey = appRoutes[req.params.path].primaryKey
+
+			if ['push', 'push_unique', 'set'].includes(req.params.method)
+				updateDict = {}
+				for key of req.query
+					if ![primaryKey, 'auth_token', 'refresh_token'].includes(key)
+						if req.params.method != 'set'
+							updateDict[key] =
+								$each: req.query[key].split(',')
 						else
-							updateDict[key] = []
+							if req.query[key] != '[]'
+								updateDict[key] = req.query[key].split(',')
+							else
+								updateDict[key] = []
 
-			#: Push
+				#: Push
 
-			if req.params.method == 'push'
-				await responseFormat(
-					model.updateOne.bind(model),
-					[
-						{
-							[primaryKey]: req.query[primaryKey]
-						},
-						{
-							$push: updateDict
-						}
-					],
-					req,
-					res
-				)
+				if req.params.method == 'push'
+					await responseFormat(
+						model.updateOne.bind(model),
+						[
+							{
+								[primaryKey]: req.query[primaryKey]
+							},
+							{
+								$push: updateDict
+							}
+						],
+						req,
+						res
+					)
 
-			#: Push Unique
+				#: Push Unique
 
-			else if req.params.method == 'push_unique'
-				await responseFormat(
-					model.updateOne.bind(model),
-					[
-						{
-							[primaryKey]: req.query[primaryKey]
-						},
-						{
-							$addToSet: updateDict
-						}
-					],
-					req,
-					res
-				)
+				else if req.params.method == 'push_unique'
+					await responseFormat(
+						model.updateOne.bind(model),
+						[
+							{
+								[primaryKey]: req.query[primaryKey]
+							},
+							{
+								$addToSet: updateDict
+							}
+						],
+						req,
+						res
+					)
 
-			#: Set
+				#: Set
 
-			else if req.params.method == 'set'
-				await responseFormat(
-					model.updateOne.bind(model),
-					[
-						{
-							[primaryKey]: req.query[primaryKey]
-						},
-						{
-							$set: updateDict
-						}
-					],
-					req,
-					res
-				)
-)
+				else if req.params.method == 'set'
+					await responseFormat(
+						model.updateOne.bind(model),
+						[
+							{
+								[primaryKey]: req.query[primaryKey]
+							},
+							{
+								$set: updateDict
+							}
+						],
+						req,
+						res
+					)
+	)
 
-#: Login
+	#: Login
 
-app.all('/login', (req, res) =>
-	try
-		user = await userAuth.findOne(
-			username: req.query.username
-		)
-		if user
-			passMatch = await bcrypt.compare(
-				req.query.password,
-				user.password
+	app.all('/login', (req, res) =>
+		try
+			user = await userAuth.findOne(
+				username: req.query.username
 			)
-			if !passMatch
-				return incorrectUserOrPass(res)
+			if user
+				passMatch = await bcrypt.compare(
+					req.query.password,
+					user.password
+				)
+				if !passMatch
+					return incorrectUserOrPass(res)
+				else
+					token = signToken(user)
+					return res.json(
+						status: 'ok'
+						response: token
+					)
 			else
-				token = signToken(user)
-				return res.json(
-					status: 'ok'
-					response: token
-				)
-		else
-			return userNotFound(res)
-	catch error
-		return res.status(500).json(
-			status: 'error'
-			response: errorObj(error)
-		)
-)
-
-#: Edit Secret Key
-
-app.all('/:path(update_secret_key)', verifyToken, (req, res) =>
-	try
-
-		isValid = allowedSecretKey(req)
-		if isValid != true
-			return res.status(401).json(isValid)
-
-		key = await secretKey.find({})
-		if key.length == 0
-			response = await secretKey.create(req.query)
-		else
-			response = await secretKey.updateOne(
-				{
-					key: key[key.length - 1].key
-				},
-				req.query
+				return userNotFound(res)
+		catch error
+			return res.status(500).json(
+				status: 'error'
+				response: errorObj(error)
 			)
-		return res.json(
-			status: 'ok'
-			response: response
-		)
+	)
 
-	catch error
-		return res.status(500).json(
-			status: 'error'
-			response: errorObj(error)
-		)
-)
+	#: Edit Secret Key
 
-#: Sign Up
+	app.all('/:path(update_secret_key)', verifyToken, (req, res) =>
+		try
 
-app.all('/:path(signup)', verifyToken, (req, res) =>
-	try
-		if req.query.secret_key?
+			isValid = allowedSecretKey(req)
+			if isValid != true
+				return res.status(401).json(isValid)
 
 			key = await secretKey.find({})
-			if key.length > 0
-				key_match = await bcrypt.compare(
-					req.query.secret_key,
-					key[key.length - 1].key
+			if key.length == 0
+				response = await secretKey.create(req.query)
+			else
+				response = await secretKey.updateOne(
+					{
+						key: key[key.length - 1].key
+					},
+					req.query
 				)
-				if !key_match
-					return incorrectSecretKey(res)
+			return res.json(
+				status: 'ok'
+				response: response
+			)
+
+		catch error
+			return res.status(500).json(
+				status: 'error'
+				response: errorObj(error)
+			)
+	)
+
+	#: Sign Up
+
+	app.all('/:path(signup)', verifyToken, (req, res) =>
+		try
+			if req.query.secret_key?
+
+				key = await secretKey.find({})
+				if key.length > 0
+					key_match = await bcrypt.compare(
+						req.query.secret_key,
+						key[key.length - 1].key
+					)
+					if !key_match
+						return incorrectSecretKey(res)
+
+				isValid = allowedPassword(req)
+				if isValid != true
+					return res.status(401).json(isValid)
+				response = await userAuth.create(req.query)
+
+				if req.query.username == response.username
+					token = signToken(response)
+					return res.json(
+						status: 'ok'
+						response: token
+					)
+				else
+					return res.status(401).json(
+						status: 'error'
+						response: response
+					)
+
+			else
+				return res.status(401).json(
+					status: 'error'
+					response:
+						message: 'Not Authorized.'
+				)
+
+		catch error
+			return res.status(500).json(
+				status: 'error'
+				response: errorObj(error)
+			)
+	)
+
+	#: Update Password
+
+	app.all('/update_password', (req, res) =>
+
+		try
+			user = await userAuth.findOne(
+				username: req.query.username
+			)
+
+			if user && req.query.current_password?
+				passMatch = await bcrypt.compare(
+					req.query.current_password,
+					user.password
+				)
+				if !passMatch
+					return incorrectUserOrPass(res)
+			else if !user
+				return userNotFound(res)
+			else if !req.query.current_password?
+				return noCurrentPass(res)
 
 			isValid = allowedPassword(req)
 			if isValid != true
 				return res.status(401).json(isValid)
-			response = await userAuth.create(req.query)
+			passUpdate = await userAuth.updateOne(
+				{ username: req.query.username },
+				objOmit(req.query, ['username'])
+			)
 
-			if req.query.username == response.username
-				token = signToken(response)
+			if passUpdate.nModified == 1
 				return res.json(
 					status: 'ok'
-					response: token
-				)
+					response:
+						message: 'Password updated.'
+					)
 			else
 				return res.status(401).json(
 					status: 'error'
-					response: response
+					response: passUpdate
 				)
-
-		else
-			return res.status(401).json(
+		catch error
+			return res.status(500).json(
 				status: 'error'
+				response: errorObj(error)
+			)
+	)
+
+	#: Verify Token
+
+	app.all('/verify_token', verifyToken, (req, res) =>
+		if res.locals.refresh_token?
+			return res.json(
+				status: 'ok',
+				refresh_token: res.locals.refresh_token
 				response:
-					message: 'Not Authorized.'
+					message: 'Token verified.'
 			)
-
-	catch error
-		return res.status(500).json(
-			status: 'error'
-			response: errorObj(error)
-		)
-)
-
-#: Update Password
-
-app.all('/update_password', (req, res) =>
-
-	try
-		user = await userAuth.findOne(
-			username: req.query.username
-		)
-
-		if user && req.query.current_password?
-			passMatch = await bcrypt.compare(
-				req.query.current_password,
-				user.password
-			)
-			if !passMatch
-				return incorrectUserOrPass(res)
-		else if !user
-			return userNotFound(res)
-		else if !req.query.current_password?
-			return noCurrentPass(res)
-
-		isValid = allowedPassword(req)
-		if isValid != true
-			return res.status(401).json(isValid)
-		passUpdate = await userAuth.updateOne(
-			{ username: req.query.username },
-			objOmit(req.query, ['username'])
-		)
-
-		if passUpdate.nModified == 1
+		else
 			return res.json(
 				status: 'ok'
 				response:
-					message: 'Password updated.'
-				)
-		else
-			return res.status(401).json(
-				status: 'error'
-				response: passUpdate
+					message: 'Token verified.'
 			)
-	catch error
-		return res.status(500).json(
-			status: 'error'
-			response: errorObj(error)
-		)
-)
+	)
 
-#: Verify Token
+#: Main
 
-app.all('/verify_token', verifyToken, (req, res) =>
-	if res.locals.refresh_token?
-		return res.json(
-			status: 'ok',
-			refresh_token: res.locals.refresh_token
-			response:
-				message: 'Token verified.'
-		)
-	else
-		return res.json(
-			status: 'ok'
-			response:
-				message: 'Token verified.'
-		)
-)
+main = () ->
+	await init()
+	start()
 
 #: Exports
 
 module.exports = {
 	app: app
+	start: main
 	models: models
 	config: serverConfig
 }

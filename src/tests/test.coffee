@@ -79,7 +79,7 @@ models =
 
 #: Start Server Hook
 
-before((done) ->
+before(() ->
 	this.timeout(10000)
 	if !fs.existsSync('./models')
 		fs.mkdirSync('./models')
@@ -89,10 +89,12 @@ before((done) ->
 				key,
 				"module.exports = #{val}"
 			)
-	api = require('../index').app
-	port = require('../index').config.serverPort
+
+	restServer = require('../index')
+	await restServer.start()
+	api = restServer.app
+	port = restServer.config.serverPort
 	url = "http://localhost:#{port}"
-	done()
 )
 
 #: Request

@@ -1,13 +1,13 @@
 {
 	"name": "mongoose-auto-api.rest",
-	"version": "0.1.7",
+	"version": "0.1.8",
 	"description": "Automatic Mongoose REST API - Rest API Module",
 	"main": "./js/index.js",
 	"files": [
 		"/js"
 	],
 	"scripts": {
-		"start": "node ./js",
+		"start": "node ./js/driver",
 		"test": "./node_modules/.bin/mocha js/tests",
 		"compile": "grunt sync",
 		"postinstall": "node ./js/utils/postInstall"
@@ -41,6 +41,7 @@
 		"mongoose-auto-api.models": "^0.0.6",
 		"mongoose-auto-api.validation": "^0.0.5",
 		"print-tools-js": "^1.1.0",
+		"public-ip": "^3.2.0",
 		"uuidv4": "^5.0.0"
 	},
 	"devDependencies": {
