@@ -96,7 +96,7 @@ db = mongooseConnect();
 app = express();
 
 app.use(cors({
-  origin: `http://localhost:${corsPort}`,
+  origin: [`http://localhost:${corsPort}`, `http://0.0.0.0:${corsPort}`],
   exposedHeaders: ['X-Access-Token']
 }));
 
