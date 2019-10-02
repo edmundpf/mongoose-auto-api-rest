@@ -16,6 +16,7 @@ routeMethods = require('./utils/routeWrapper').routeMethods
 
 objOmit = require('./utils/apiFunctions').objOmit
 errorObj = require('./utils/apiFunctions').errorObj
+parseDataSort = require('./utils/apiFunctions').parseDataSort
 schemaAsync = require('./utils/apiFunctions').schemaAsync
 updateQuery = require('./utils/apiFunctions').updateQuery
 allowedPassword = require('./utils/apiFunctions').allowedPassword
@@ -162,9 +163,17 @@ start = () ->
 			#: Get All
 
 			else if req.params.method == 'get_all'
+
+				sortArgs = parseDataSort(req.query, false)
+				console.log(sortArgs)
+
 				await responseFormat(
 					model.find.bind(model),
-					[{}],
+					[
+						{},
+						null,
+						sortArgs,
+					],
 					req,
 					res
 				)
@@ -172,6 +181,9 @@ start = () ->
 			#: Find
 
 			else if req.params.method == 'find'
+
+				sortArgs = parseDataSort(req.query, true)
+				console.log(sortArgs)
 
 				if req.query.local_field? and req.query.from? and req.query.foreign_field? and req.query.as?
 					lookup =
@@ -191,12 +203,14 @@ start = () ->
 						aggArgs = [
 							parseQuery(model, req.query.where),
 							lookup,
-							unwind
+							unwind,
+							...sortArgs,
 						]
 
 				else
 					aggArgs = [
-						parseQuery(model, req.query.where)
+						parseQuery(model, req.query.where),
+						...sortArgs,
 					]
 
 				await responseFormat(

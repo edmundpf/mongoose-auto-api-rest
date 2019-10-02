@@ -1,4 +1,4 @@
-var allowedPassword, allowedSecretKey, app, appRoutes, assert, bcrypt, cors, corsPort, databaseName, error, errorObj, express, incorrectSecretKey, incorrectUserOrPass, init, listMethods, listRoutes, main, models, mongoose, mongooseConnect, mongoosePort, noCurrentPass, normalMethods, normalRoutes, objOmit, p, parseQuery, publicIp, responseFormat, routeMethods, schemaAsync, secretKey, serverAddress, serverConfig, serverPort, signToken, start, updateQuery, userAuth, userNotFound, verifyToken;
+var allowedPassword, allowedSecretKey, app, appRoutes, assert, bcrypt, cors, corsPort, databaseName, error, errorObj, express, incorrectSecretKey, incorrectUserOrPass, init, listMethods, listRoutes, main, models, mongoose, mongooseConnect, mongoosePort, noCurrentPass, normalMethods, normalRoutes, objOmit, p, parseDataSort, parseQuery, publicIp, responseFormat, routeMethods, schemaAsync, secretKey, serverAddress, serverConfig, serverPort, signToken, start, updateQuery, userAuth, userNotFound, verifyToken;
 
 cors = require('cors');
 
@@ -31,6 +31,8 @@ routeMethods = require('./utils/routeWrapper').routeMethods;
 objOmit = require('./utils/apiFunctions').objOmit;
 
 errorObj = require('./utils/apiFunctions').errorObj;
+
+parseDataSort = require('./utils/apiFunctions').parseDataSort;
 
 schemaAsync = require('./utils/apiFunctions').schemaAsync;
 
@@ -119,7 +121,7 @@ start = function() {
   });
   //: All Routes
   app.all(`/:path(${Object.keys(appRoutes).join('|')})/:method(${normalMethods.join('|')})`, verifyToken, async(req, res) => {
-    var aggArgs, allFields, field, i, key, len, listFields, lookup, model, modelInfo, mongoFields, normalDict, primaryKey, record, records, ref, setDict, unsetDict, unwind, val;
+    var aggArgs, allFields, field, i, key, len, listFields, lookup, model, modelInfo, mongoFields, normalDict, primaryKey, record, records, ref, setDict, sortArgs, unsetDict, unwind, val;
     modelInfo = appRoutes[req.params.path];
     model = modelInfo.model;
     primaryKey = modelInfo.primaryKey;
@@ -154,9 +156,13 @@ start = function() {
       ], req, res));
     //: Get All
     } else if (req.params.method === 'get_all') {
-      return (await responseFormat(model.find.bind(model), [{}], req, res));
+      sortArgs = parseDataSort(req.query, false);
+      console.log(sortArgs);
+      return (await responseFormat(model.find.bind(model), [{}, null, sortArgs], req, res));
     //: Find
     } else if (req.params.method === 'find') {
+      sortArgs = parseDataSort(req.query, true);
+      console.log(sortArgs);
       if ((req.query.local_field != null) && (req.query.from != null) && (req.query.foreign_field != null) && (req.query.as != null)) {
         lookup = {
           $lookup: {
@@ -172,10 +178,10 @@ start = function() {
           unwind = {
             $unwind: `$${req.query.as}`
           };
-          aggArgs = [parseQuery(model, req.query.where), lookup, unwind];
+          aggArgs = [parseQuery(model, req.query.where), lookup, unwind, ...sortArgs];
         }
       } else {
-        aggArgs = [parseQuery(model, req.query.where)];
+        aggArgs = [parseQuery(model, req.query.where), ...sortArgs];
       }
       return (await responseFormat(model.aggregate.bind(model), aggArgs, req, res, false));
     //: Get Schema Info

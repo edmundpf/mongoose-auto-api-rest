@@ -90,6 +90,13 @@ $ api = require('mongoose-auto-api.rest')
 	* Success: `[{attributes...}]`
 * `x/get_all`
 	* Gets all records
+	* Params
+		* *sort_field* 
+			* Field to sort by
+		* *sort_order*
+			* Sort order, -1 for descending, 1 for ascending
+		* *record_limit*
+			* Number of records to return
 	* Success: `[{attributes...}, {}...]`
 * `x/find`
 	* finds records
@@ -110,6 +117,12 @@ $ api = require('mongoose-auto-api.rest')
 				* $cont - contains string
 				* $inc - array field includes value
 				* $ninc - array field does not include value
+		* param - *sort_field* 
+			* Field to sort by
+		* param - *sort_order*
+			* Sort order, -1 for descending, 1 for ascending
+		* param - *record_limit*
+			* Number of records to return
 	* joins collections
 		* param - *from*
 			* collection to join

@@ -740,6 +740,44 @@ describe 'API Methods', ->
 			true
 		)
 
+	it 'Valid get_all sort and limit', ->
+		query =
+			sort_field: 'name'
+			sort_order: -1
+			record_limit: 1
+		query = new URLSearchParams(query)
+		res = await get("/customer/get_all?#{query}")
+		assert.equal(
+			res.status == 'ok' and
+			res.statusCode == 200 and
+			res.response.length == 1 and
+			res.response[0].name == 'tom',
+			true
+		)
+
+	it 'Valid find sort and limit', ->
+		query =
+			sort_field: 'name'
+			sort_order: -1
+			record_limit: 1
+		where = [
+			{
+				field: 'name'
+				op: '$gte'
+				value: 'a'
+			}
+		]
+		query = new URLSearchParams(query)
+		where = new URLSearchParams(where: JSON.stringify(where))
+		res = await get("/customer/find?#{where}&#{query}")
+		assert.equal(
+			res.status == 'ok' and
+			res.statusCode == 200 and
+			res.response.length == 1 and
+			res.response[0].name == 'tom',
+			true
+		)
+
 	it 'Valid non-list field lookup', ->
 		query = [
 			{

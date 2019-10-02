@@ -1,4 +1,4 @@
-var AUTH_TOKEN, allowedPassword, allowedSecretKey, errorObj, incorrectSecretKey, incorrectUserOrPass, jwt, models, noCurrentPass, objOmit, responseFormat, schemaAsync, schemaInfo, secretKey, signToken, updateQuery, userAuth, userNotFound, uuid, validation, verifyToken;
+var AUTH_TOKEN, allowedPassword, allowedSecretKey, errorObj, incorrectSecretKey, incorrectUserOrPass, jwt, models, noCurrentPass, objOmit, parseDataSort, responseFormat, schemaAsync, schemaInfo, secretKey, signToken, updateQuery, userAuth, userNotFound, uuid, validation, verifyToken;
 
 jwt = require('jsonwebtoken');
 
@@ -34,6 +34,48 @@ errorObj = function(error) {
     name: error.name,
     trace: error.stack.split('\n')[1].trim()
   };
+};
+
+//: Parse Data Sort
+parseDataSort = function(query, aggregate = false) {
+  var limit, sortArgs, sortField, sortOrder;
+  limit = 0;
+  sortOrder = 1;
+  sortArgs = null;
+  sortField = 'createdAt';
+  if (query.sort_order != null) {
+    sortOrder = Number(query.sort_order);
+  }
+  if (query.sort_field != null) {
+    sortField = query.sort_field;
+  }
+  if (query.record_limit != null) {
+    limit = Number(query.record_limit);
+  }
+  if (aggregate) {
+    sortArgs = [
+      {
+        $sort: {
+          [sortField]: sortOrder
+        }
+      }
+    ];
+    if (limit !== 0) {
+      sortArgs.push({
+        $limit: limit
+      });
+    }
+  } else {
+    sortArgs = {
+      sort: {
+        [sortField]: sortOrder
+      }
+    };
+    if (limit !== 0) {
+      sortArgs.limit = limit;
+    }
+  }
+  return sortArgs;
 };
 
 //::: SCHEMA FUNCTIONS :::
@@ -237,6 +279,6 @@ verifyToken = async function(req, res, next) {
 };
 
 //::: EXPORTS :::
-module.exports = {objOmit, errorObj, schemaAsync, updateQuery, allowedPassword, allowedSecretKey, responseFormat, incorrectSecretKey, incorrectUserOrPass, userNotFound, noCurrentPass, signToken, verifyToken};
+module.exports = {objOmit, errorObj, parseDataSort, schemaAsync, updateQuery, allowedPassword, allowedSecretKey, responseFormat, incorrectSecretKey, incorrectUserOrPass, userNotFound, noCurrentPass, signToken, verifyToken};
 
 //::: End Program :::

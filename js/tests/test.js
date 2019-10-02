@@ -502,6 +502,38 @@ describe('API Methods', function() {
     await post("/product/delete_all");
     return assert.equal(res.status === 'ok' && res.statusCode === 200 && res.response[0].productInfo[0].name === 'apples', true);
   });
+  it('Valid get_all sort and limit', async function() {
+    var query, res;
+    query = {
+      sort_field: 'name',
+      sort_order: -1,
+      record_limit: 1
+    };
+    query = new URLSearchParams(query);
+    res = (await get(`/customer/get_all?${query}`));
+    return assert.equal(res.status === 'ok' && res.statusCode === 200 && res.response.length === 1 && res.response[0].name === 'tom', true);
+  });
+  it('Valid find sort and limit', async function() {
+    var query, res, where;
+    query = {
+      sort_field: 'name',
+      sort_order: -1,
+      record_limit: 1
+    };
+    where = [
+      {
+        field: 'name',
+        op: '$gte',
+        value: 'a'
+      }
+    ];
+    query = new URLSearchParams(query);
+    where = new URLSearchParams({
+      where: JSON.stringify(where)
+    });
+    res = (await get(`/customer/find?${where}&${query}`));
+    return assert.equal(res.status === 'ok' && res.statusCode === 200 && res.response.length === 1 && res.response[0].name === 'tom', true);
+  });
   it('Valid non-list field lookup', async function() {
     var query, res;
     query = [

@@ -26,6 +26,38 @@ errorObj = (error) ->
 		trace: error.stack.split('\n')[1].trim()
 	)
 
+#: Parse Data Sort
+
+parseDataSort = (query, aggregate=false) ->
+	limit = 0
+	sortOrder = 1
+	sortArgs = null
+	sortField = 'createdAt'
+	if query.sort_order?
+		sortOrder = Number(query.sort_order)
+	if query.sort_field?
+		sortField = query.sort_field
+	if query.record_limit?
+		limit = Number(query.record_limit)
+	if aggregate
+		sortArgs = [
+			{
+				$sort:
+					[sortField]: sortOrder
+			}
+		]
+		if limit != 0
+			sortArgs.push(
+				$limit: limit
+			)
+	else
+		sortArgs =
+			sort:
+				[sortField]: sortOrder
+		if limit != 0
+			sortArgs.limit = limit
+	return sortArgs
+
 #::: SCHEMA FUNCTIONS :::
 
 # Get Schema Info
@@ -210,6 +242,7 @@ verifyToken = (req, res, next) ->
 module.exports = {
 	objOmit,
 	errorObj,
+	parseDataSort,
 	schemaAsync,
 	updateQuery,
 	allowedPassword,
