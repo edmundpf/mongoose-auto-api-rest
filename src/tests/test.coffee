@@ -12,6 +12,8 @@ SECRET_KEY1 = 'secretKeyTest1!'
 SECRET_KEY2 = 'secretKeyTest2!'
 ACCESS_TOKEN = ''
 
+process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0'
+
 customerModel = """
 {
 	name: 'customer',
@@ -94,7 +96,10 @@ before(() ->
 	await restServer.start()
 	api = restServer.app
 	port = restServer.config.serverPort
-	url = "http://localhost:#{port}"
+	if restServer.config.serverAddress != 'localhost'
+		url = "https://localhost:#{port}"
+	else
+		url = "http://localhost:#{port}"
 )
 
 #: Request

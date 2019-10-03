@@ -24,6 +24,8 @@ SECRET_KEY2 = 'secretKeyTest2!';
 
 ACCESS_TOKEN = '';
 
+process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
+
 customerModel = "{\n	name: 'customer',\n	schema: {\n		name: {\n			type: String,\n			unique: true,\n			required: true,\n			primaryKey: true,\n		},\n		email: {\n			type: String,\n			unique: true,\n			required: true,\n		},\n		products: [{\n			type: String\n		}]\n	},\n}";
 
 productModel = "{\n	name: 'product',\n	schema: {\n		name: {\n			type: String,\n			unique: true,\n			required: true,\n			primaryKey: true,\n		},\n		price: {\n			type: Number,\n			unique: true,\n			required: true,\n		}\n	},\n}";
@@ -53,7 +55,11 @@ before(async function() {
   await restServer.start();
   api = restServer.app;
   port = restServer.config.serverPort;
-  return url = `http://localhost:${port}`;
+  if (restServer.config.serverAddress !== 'localhost') {
+    return url = `https://localhost:${port}`;
+  } else {
+    return url = `http://localhost:${port}`;
+  }
 });
 
 //: Request

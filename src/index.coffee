@@ -1,3 +1,6 @@
+fs = require('fs')
+http = require('http')
+https = require('https')
 cors = require('cors')
 assert = require('assert')
 bcrypt = require('bcrypt')
@@ -59,17 +62,30 @@ mongooseConnect = () ->
 		p.error('MongoDB Service is not started.')
 		process.exit(1)
 
+#: Server Started Function
+
+serverStarted = () =>
+	p.success("Public IP: #{serverAddress}", log: false)
+	p.titleBox(
+		"Data API Server"
+		titleDesc: "Running on port #{serverPort}"
+		tagLine: "Connecting to Mongo database: #{databaseName} on port #{mongoosePort}"
+	)
+
 #: Init Server
 
 init = () ->
 
 	serverAddress = await publicIp.v4()
 	await mongooseConnect()
+
 	app.use(
 		cors(
 			origin: [
 				"http://localhost:#{corsPort}"
+				"https://localhost:#{corsPort}"
 				"http://#{serverAddress}:#{corsPort}"
+				"https://#{serverAddress}:#{corsPort}"
 			]
 			exposedHeaders: [ 'X-Access-Token' ],
 		)
@@ -79,14 +95,26 @@ init = () ->
 
 start = () ->
 
-	app.listen(serverPort, =>
-		p.success("Public IP: #{serverAddress}", log: false)
-		p.titleBox(
-			'Data API Server'
-			titleDesc: "Running on port #{serverPort}"
-			tagLine: "Connecting to Mongo database: #{databaseName} on port #{mongoosePort}"
-		)
-	)
+	keyPath = '../../keys/ss.key'
+	certPath = '../../keys/ss.crt'
+	keyExists = fs.existsSync(keyPath)
+	certExists = fs.existsSync(certPath)
+
+	if serverConfig.serverAddress != 'localhost' and keyExists and certExists
+
+		# HTTPS Server
+
+		p.success('Secure server starting...', log: false)
+		https.createServer(
+			{
+				key: fs.readFileSync(keyPath)
+				cert: fs.readFileSync(certPath)
+			},
+			app
+		).listen(serverPort, serverStarted)
+	else
+		p.warning('Insecure server starting', log: false)
+		app.listen(serverPort, serverStarted)
 
 	#: All Routes
 

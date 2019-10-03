@@ -1,4 +1,10 @@
-var allowedPassword, allowedSecretKey, app, appRoutes, assert, bcrypt, cors, corsPort, databaseName, error, errorObj, express, incorrectSecretKey, incorrectUserOrPass, init, listMethods, listRoutes, main, models, mongoose, mongooseConnect, mongoosePort, noCurrentPass, normalMethods, normalRoutes, objOmit, p, parseDataSort, parseQuery, publicIp, responseFormat, routeMethods, schemaAsync, secretKey, serverAddress, serverConfig, serverPort, signToken, start, updateQuery, userAuth, userNotFound, verifyToken;
+var allowedPassword, allowedSecretKey, app, appRoutes, assert, bcrypt, cors, corsPort, databaseName, error, errorObj, express, fs, http, https, incorrectSecretKey, incorrectUserOrPass, init, listMethods, listRoutes, main, models, mongoose, mongooseConnect, mongoosePort, noCurrentPass, normalMethods, normalRoutes, objOmit, p, parseDataSort, parseQuery, publicIp, responseFormat, routeMethods, schemaAsync, secretKey, serverAddress, serverConfig, serverPort, serverStarted, signToken, start, updateQuery, userAuth, userNotFound, verifyToken;
+
+fs = require('fs');
+
+http = require('http');
+
+https = require('https');
 
 cors = require('cors');
 
@@ -98,27 +104,49 @@ mongooseConnect = async function() {
   }
 };
 
+//: Server Started Function
+serverStarted = () => {
+  p.success(`Public IP: ${serverAddress}`, {
+    log: false
+  });
+  return p.titleBox("Data API Server", {
+    titleDesc: `Running on port ${serverPort}`,
+    tagLine: `Connecting to Mongo database: ${databaseName} on port ${mongoosePort}`
+  });
+};
+
 //: Init Server
 init = async function() {
   serverAddress = (await publicIp.v4());
   await mongooseConnect();
   return app.use(cors({
-    origin: [`http://localhost:${corsPort}`, `http://${serverAddress}:${corsPort}`],
+    origin: [`http://localhost:${corsPort}`, `https://localhost:${corsPort}`, `http://${serverAddress}:${corsPort}`, `https://${serverAddress}:${corsPort}`],
     exposedHeaders: ['X-Access-Token']
   }));
 };
 
 //: Start Server
 start = function() {
-  app.listen(serverPort, () => {
-    p.success(`Public IP: ${serverAddress}`, {
+  var certExists, certPath, keyExists, keyPath;
+  keyPath = '../../keys/ss.key';
+  certPath = '../../keys/ss.crt';
+  keyExists = fs.existsSync(keyPath);
+  certExists = fs.existsSync(certPath);
+  if (serverConfig.serverAddress !== 'localhost' && keyExists && certExists) {
+    // HTTPS Server
+    p.success('Secure server starting...', {
       log: false
     });
-    return p.titleBox('Data API Server', {
-      titleDesc: `Running on port ${serverPort}`,
-      tagLine: `Connecting to Mongo database: ${databaseName} on port ${mongoosePort}`
+    https.createServer({
+      key: fs.readFileSync(keyPath),
+      cert: fs.readFileSync(certPath)
+    }, app).listen(serverPort, serverStarted);
+  } else {
+    p.warning('Insecure server starting', {
+      log: false
     });
-  });
+    app.listen(serverPort, serverStarted);
+  }
   //: All Routes
   app.all(`/:path(${Object.keys(appRoutes).join('|')})/:method(${normalMethods.join('|')})`, verifyToken, async(req, res) => {
     var aggArgs, allFields, field, i, key, len, listFields, lookup, model, modelInfo, mongoFields, normalDict, primaryKey, record, records, ref, setDict, sortArgs, unsetDict, unwind, val;
