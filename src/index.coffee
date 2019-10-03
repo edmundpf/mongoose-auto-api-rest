@@ -1,5 +1,4 @@
 fs = require('fs')
-http = require('http')
 https = require('https')
 cors = require('cors')
 assert = require('assert')

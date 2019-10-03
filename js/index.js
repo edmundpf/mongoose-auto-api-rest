@@ -1,8 +1,6 @@
-var allowedPassword, allowedSecretKey, app, appRoutes, assert, bcrypt, cors, corsPort, databaseName, error, errorObj, express, fs, http, https, incorrectSecretKey, incorrectUserOrPass, init, listMethods, listRoutes, main, models, mongoose, mongooseConnect, mongoosePort, noCurrentPass, normalMethods, normalRoutes, objOmit, p, parseDataSort, parseQuery, publicIp, responseFormat, routeMethods, schemaAsync, secretKey, serverAddress, serverConfig, serverPort, serverStarted, signToken, start, updateQuery, userAuth, userNotFound, verifyToken;
+var allowedPassword, allowedSecretKey, app, appRoutes, assert, bcrypt, cors, corsPort, databaseName, error, errorObj, express, fs, https, incorrectSecretKey, incorrectUserOrPass, init, listMethods, listRoutes, main, models, mongoose, mongooseConnect, mongoosePort, noCurrentPass, normalMethods, normalRoutes, objOmit, p, parseDataSort, parseQuery, publicIp, responseFormat, routeMethods, schemaAsync, secretKey, serverAddress, serverConfig, serverPort, serverStarted, signToken, start, updateQuery, userAuth, userNotFound, verifyToken;
 
 fs = require('fs');
-
-http = require('http');
 
 https = require('https');
 
