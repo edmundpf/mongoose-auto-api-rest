@@ -85,6 +85,8 @@ init = () ->
 				"https://localhost:#{corsPort}"
 				"http://#{serverAddress}:#{corsPort}"
 				"https://#{serverAddress}:#{corsPort}"
+				"http://#{serverConfig.serverAddress}:#{corsPort}"
+				"https://#{serverConfig.serverAddress}:#{corsPort}"
 			]
 			exposedHeaders: [ 'X-Access-Token' ],
 		)
