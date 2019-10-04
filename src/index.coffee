@@ -78,20 +78,6 @@ init = () ->
 	serverAddress = await publicIp.v4()
 	await mongooseConnect()
 
-	app.use(
-		cors(
-			origin: [
-				"http://localhost:#{corsPort}"
-				"https://localhost:#{corsPort}"
-				"http://#{serverAddress}:#{corsPort}"
-				"https://#{serverAddress}:#{corsPort}"
-				"http://#{serverConfig.serverAddress}:#{corsPort}"
-				"https://#{serverConfig.serverAddress}:#{corsPort}"
-			]
-			exposedHeaders: [ 'X-Access-Token' ],
-		)
-	)
-
 #: Start Server
 
 start = () ->
@@ -103,7 +89,19 @@ start = () ->
 
 	if serverConfig.serverAddress != 'localhost' and keyExists and certExists
 
-		# HTTPS Server
+		app.use(
+			cors(
+				origin: [
+					"http://localhost:#{corsPort}"
+					"https://localhost:#{corsPort}"
+					"http://#{serverAddress}:#{corsPort}"
+					"https://#{serverAddress}:#{corsPort}"
+					"http://#{serverConfig.serverAddress}:#{corsPort}"
+					"https://#{serverConfig.serverAddress}:#{corsPort}"
+				]
+				exposedHeaders: [ 'X-Access-Token' ],
+			)
+		)
 
 		p.success('Secure server starting...', log: false)
 		https.createServer(
@@ -114,6 +112,14 @@ start = () ->
 			app
 		).listen(serverPort, serverStarted)
 	else
+
+		app.use(
+			cors(
+				origin: "http://localhost:#{corsPort}"
+				exposedHeaders: [ 'X-Access-Token' ],
+			)
+		)
+
 		p.warning('Insecure server starting', log: false)
 		app.listen(serverPort, serverStarted)
 
