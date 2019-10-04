@@ -194,12 +194,10 @@ start = function() {
     //: Get All
     } else if (req.params.method === 'get_all') {
       sortArgs = parseDataSort(req.query, false);
-      console.log(sortArgs);
       return (await responseFormat(model.find.bind(model), [{}, null, sortArgs], req, res));
     //: Find
     } else if (req.params.method === 'find') {
       sortArgs = parseDataSort(req.query, true);
-      console.log(sortArgs);
       if ((req.query.local_field != null) && (req.query.from != null) && (req.query.foreign_field != null) && (req.query.as != null)) {
         lookup = {
           $lookup: {

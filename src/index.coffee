@@ -208,7 +208,6 @@ start = () ->
 			else if req.params.method == 'get_all'
 
 				sortArgs = parseDataSort(req.query, false)
-				console.log(sortArgs)
 
 				await responseFormat(
 					model.find.bind(model),
@@ -226,7 +225,6 @@ start = () ->
 			else if req.params.method == 'find'
 
 				sortArgs = parseDataSort(req.query, true)
-				console.log(sortArgs)
 
 				if req.query.local_field? and req.query.from? and req.query.foreign_field? and req.query.as?
 					lookup =
