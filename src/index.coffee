@@ -1,4 +1,5 @@
 fs = require('fs')
+path = require('path')
 https = require('https')
 cors = require('cors')
 assert = require('assert')
@@ -82,12 +83,18 @@ init = () ->
 
 start = () ->
 
-	keyPath = './keys/ss.key'
-	certPath = './keys/ss.crt'
+	keyPath = if serverConfig.sslKey then serverConfig.sslKey else "/etc/letsencrypt/live/#{serverConfig.serverAddress}/privkey.pem"
+	certPath = if serverConfig.sslCert then serverConfig.sslCert else "/etc/letsencrypt/live/#{serverConfig.serverAddress}/cert.pem"
+	chainPath = if serverConfig.sslChain then serverConfig.sslChain else "/etc/letsencrypt/live/#{serverConfig.serverAddress}/chain.pem"
+	keyPath = path.resolve(keyPath)
+	certPath = path.resolve(certPath)
+	chainPath = path.resolve(chainPath)
+
 	keyExists = fs.existsSync(keyPath)
 	certExists = fs.existsSync(certPath)
+	chainExists = fs.existsSync(chainPath)
 
-	if serverConfig.serverAddress != 'localhost' and keyExists and certExists
+	if serverConfig.serverAddress != 'localhost' and keyExists and certExists and chainExists
 
 		app.use(
 			cors(
@@ -108,6 +115,7 @@ start = () ->
 			{
 				key: fs.readFileSync(keyPath)
 				cert: fs.readFileSync(certPath)
+				ca: fs.readFileSync(chainPath)
 			},
 			app
 		).listen(serverPort, serverStarted)

@@ -1,11 +1,14 @@
 {
+	"siteTitle": "Default Title",
+	"siteDesc": "Default Description",
+	"databaseName": "default_database",
 	"serverPort": 4000,
 	"webPort": 3000,
 	"mongoosePort": 27017,
 	"serverAddress": "localhost",
-	"databaseName": "default_database",
-	"siteTitle": "Default Title",
-	"siteDesc": "Default Description",
+	"sslKey": false,
+	"sslCert": false,
+	"sslChain": false,
 	"hiddenFields": [
 		"_id",
 		"uid",

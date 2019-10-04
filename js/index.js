@@ -1,6 +1,8 @@
-var allowedPassword, allowedSecretKey, app, appRoutes, assert, bcrypt, cors, corsPort, databaseName, error, errorObj, express, fs, https, incorrectSecretKey, incorrectUserOrPass, init, listMethods, listRoutes, main, models, mongoose, mongooseConnect, mongoosePort, noCurrentPass, normalMethods, normalRoutes, objOmit, p, parseDataSort, parseQuery, publicIp, responseFormat, routeMethods, schemaAsync, secretKey, serverAddress, serverConfig, serverPort, serverStarted, signToken, start, updateQuery, userAuth, userNotFound, verifyToken;
+var allowedPassword, allowedSecretKey, app, appRoutes, assert, bcrypt, cors, corsPort, databaseName, error, errorObj, express, fs, https, incorrectSecretKey, incorrectUserOrPass, init, listMethods, listRoutes, main, models, mongoose, mongooseConnect, mongoosePort, noCurrentPass, normalMethods, normalRoutes, objOmit, p, parseDataSort, parseQuery, path, publicIp, responseFormat, routeMethods, schemaAsync, secretKey, serverAddress, serverConfig, serverPort, serverStarted, signToken, start, updateQuery, userAuth, userNotFound, verifyToken;
 
 fs = require('fs');
+
+path = require('path');
 
 https = require('https');
 
@@ -121,12 +123,17 @@ init = async function() {
 
 //: Start Server
 start = function() {
-  var certExists, certPath, keyExists, keyPath;
-  keyPath = './keys/ss.key';
-  certPath = './keys/ss.crt';
+  var certExists, certPath, chainExists, chainPath, keyExists, keyPath;
+  keyPath = serverConfig.sslKey ? serverConfig.sslKey : `/etc/letsencrypt/live/${serverConfig.serverAddress}/privkey.pem`;
+  certPath = serverConfig.sslCert ? serverConfig.sslCert : `/etc/letsencrypt/live/${serverConfig.serverAddress}/cert.pem`;
+  chainPath = serverConfig.sslChain ? serverConfig.sslChain : `/etc/letsencrypt/live/${serverConfig.serverAddress}/chain.pem`;
+  keyPath = path.resolve(keyPath);
+  certPath = path.resolve(certPath);
+  chainPath = path.resolve(chainPath);
   keyExists = fs.existsSync(keyPath);
   certExists = fs.existsSync(certPath);
-  if (serverConfig.serverAddress !== 'localhost' && keyExists && certExists) {
+  chainExists = fs.existsSync(chainPath);
+  if (serverConfig.serverAddress !== 'localhost' && keyExists && certExists && chainExists) {
     app.use(cors({
       origin: [`http://localhost:${corsPort}`, `https://localhost:${corsPort}`, `http://${serverAddress}:${corsPort}`, `https://${serverAddress}:${corsPort}`, `http://${serverConfig.serverAddress}:${corsPort}`, `https://${serverConfig.serverAddress}:${corsPort}`],
       exposedHeaders: ['X-Access-Token']
@@ -136,7 +143,8 @@ start = function() {
     });
     https.createServer({
       key: fs.readFileSync(keyPath),
-      cert: fs.readFileSync(certPath)
+      cert: fs.readFileSync(certPath),
+      ca: fs.readFileSync(chainPath)
     }, app).listen(serverPort, serverStarted);
   } else {
     app.use(cors({
