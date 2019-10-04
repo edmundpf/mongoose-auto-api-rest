@@ -126,8 +126,8 @@ init = async function() {
 //: Start Server
 start = function() {
   var certExists, certPath, keyExists, keyPath;
-  keyPath = '../../keys/ss.key';
-  certPath = '../../keys/ss.crt';
+  keyPath = './keys/ss.key';
+  certPath = './keys/ss.crt';
   keyExists = fs.existsSync(keyPath);
   certExists = fs.existsSync(certPath);
   if (serverConfig.serverAddress !== 'localhost' && keyExists && certExists) {

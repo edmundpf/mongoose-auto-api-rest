@@ -96,8 +96,8 @@ init = () ->
 
 start = () ->
 
-	keyPath = '../../keys/ss.key'
-	certPath = '../../keys/ss.crt'
+	keyPath = './keys/ss.key'
+	certPath = './keys/ss.crt'
 	keyExists = fs.existsSync(keyPath)
 	certExists = fs.existsSync(certPath)
 
