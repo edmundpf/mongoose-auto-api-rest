@@ -68,6 +68,8 @@ schemaInfo = (model) ->
 		primary_key: model.primaryKey
 		list_fields: model.listFields
 		encrypt_fields: model.encryptFields
+		encode_fields: model.encodeFields
+		subdoc_fields: model.subDocFields
 
 # Get Schema Info Async
 

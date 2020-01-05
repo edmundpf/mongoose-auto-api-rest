@@ -140,6 +140,13 @@ start = () ->
 			model = modelInfo.model
 			primaryKey = modelInfo.primaryKey
 
+			#: Format Sub-Document fields
+
+			if ['update', 'insert'].includes(req.params.method)
+				for field in modelInfo.subDocFields
+					if typeof req.query[field] == 'string'
+						req.query[field] = JSON.parse(req.query[field])
+
 			#: Insert
 
 			if req.params.method == 'insert'
@@ -153,6 +160,7 @@ start = () ->
 			#: Update
 
 			else if req.params.method == 'update'
+
 				await responseFormat(
 					model.updateOne.bind(model),
 					[

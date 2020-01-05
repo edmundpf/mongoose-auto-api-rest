@@ -158,10 +158,20 @@ start = function() {
   }
   //: All Routes
   app.all(`/:path(${Object.keys(appRoutes).join('|')})/:method(${normalMethods.join('|')})`, verifyToken, async(req, res) => {
-    var aggArgs, allFields, field, i, key, len, listFields, lookup, model, modelInfo, mongoFields, normalDict, primaryKey, record, records, ref, setDict, sortArgs, unsetDict, unwind, val;
+    var aggArgs, allFields, field, i, j, key, len, len1, listFields, lookup, model, modelInfo, mongoFields, normalDict, primaryKey, record, records, ref, ref1, setDict, sortArgs, unsetDict, unwind, val;
     modelInfo = appRoutes[req.params.path];
     model = modelInfo.model;
     primaryKey = modelInfo.primaryKey;
+    //: Format Sub-Document fields
+    if (['update', 'insert'].includes(req.params.method)) {
+      ref = modelInfo.subDocFields;
+      for (i = 0, len = ref.length; i < len; i++) {
+        field = ref[i];
+        if (typeof req.query[field] === 'string') {
+          req.query[field] = JSON.parse(req.query[field]);
+        }
+      }
+    }
     //: Insert
     if (req.params.method === 'insert') {
       return (await responseFormat(model.create.bind(model), [req.query], req, res));
@@ -231,17 +241,17 @@ start = function() {
       allFields = [...mongoFields, ...modelInfo.allFields];
       listFields = modelInfo.listFields;
       records = (await model.find({}).lean());
-      for (i = 0, len = records.length; i < len; i++) {
-        record = records[i];
+      for (j = 0, len1 = records.length; j < len1; j++) {
+        record = records[j];
         for (key in record) {
           if (!allFields.includes(key) && !Object.keys(unsetDict).includes(key)) {
             unsetDict[key] = 1;
           }
         }
       }
-      ref = req.query;
-      for (field in ref) {
-        val = ref[field];
+      ref1 = req.query;
+      for (field in ref1) {
+        val = ref1[field];
         if (listFields.includes(field)) {
           setDict[field] = val.split(',');
         } else {

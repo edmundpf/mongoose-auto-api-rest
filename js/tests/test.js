@@ -1,4 +1,4 @@
-var ACCESS_TOKEN, PASSWORD1, PASSWORD2, SECRET_KEY1, SECRET_KEY2, USERNAME, a, api, assert, createAssert, customerModel, errorAssert, errorCodeAssert, errorExistsAssert, findTest, fs, get, infoModel, models, okayAssert, okayExistsAssert, okayModAssert, p, port, post, productModel, remove, request, server, should, url;
+var ACCESS_TOKEN, PASSWORD1, PASSWORD2, SECRET_KEY1, SECRET_KEY2, USERNAME, a, api, assert, createAssert, customerModel, errorAssert, errorCodeAssert, errorExistsAssert, findTest, fs, get, infoModel, models, okayAssert, okayExistsAssert, okayModAssert, p, port, post, productModel, remove, request, server, should, subDocModel, url;
 
 a = require('axios');
 
@@ -32,10 +32,13 @@ productModel = "{\n	name: 'product',\n	schema: {\n		name: {\n			type: String,\n	
 
 infoModel = "{\n	name: 'info',\n	schema: {\n		email: {\n			type: String,\n			unique: true,\n			required: true,\n			primaryKey: true,\n		},\n		location: {\n			type: String,\n			unique: true,\n			required: true,\n		}\n	},\n}";
 
+subDocModel = "{\n	name: 'subDoc',\n	schema: {\n		name: {\n			type: new require('mongoose').Schema({\n				address: String,\n			}),\n			required: true,\n		},\n		password: {\n			type: String,\n			encode: true,\n		}\n	},\n}";
+
 models = {
   './models/customer.js': customerModel,
   './models/product.js': productModel,
-  './models/info.js': infoModel
+  './models/info.js': infoModel,
+  './models/subDoc.js': subDocModel
 };
 
 //: Start Server Hook
@@ -364,6 +367,17 @@ describe('API Methods', function() {
     res = (await post("/customer/insert?name=bob&email=bob@email.com"));
     return okayExistsAssert(res, ['_id', 'uid']);
   });
+  it('Valid sub-document and encoded insert', async function() {
+    var params, res;
+    params = new URLSearchParams({
+      name: JSON.stringify({
+        address: 'home'
+      }),
+      password: 'testPassword'
+    });
+    res = (await post(`/sub_doc/insert?${params}`));
+    return okayExistsAssert(res, ['name', 'password']);
+  });
   it('Invalid update', async function() {
     var res;
     res = (await post("/customer/update?name=joe"));
@@ -398,6 +412,11 @@ describe('API Methods', function() {
     var res;
     res = (await get("/user_auth/schema"));
     return assert.equal(res.status === 'ok' && res.statusCode === 200 && res.response.schema.includes('username') && res.response.encrypt_fields.includes('password') && res.response.primary_key === 'username', true);
+  });
+  it('Schema info - encoded and sub-document fields', async function() {
+    var res;
+    res = (await get("/sub_doc/schema"));
+    return assert.equal(res.status === 'ok' && res.statusCode === 200 && res.response.schema.includes('name') && res.response.encode_fields.includes('password') && res.response.subdoc_fields.includes('name'), true);
   });
   it('Sterilize - remove obsolete, and set fields for all documents', async function() {
     var hasChanges, i, len, ref, res, user, users;
@@ -613,11 +632,12 @@ describe('API Methods', function() {
     return okayModAssert(res, 'deletedCount', 2);
   });
   return it('Admin Auth cleanup', async function() {
-    var secret, user;
+    var secret, subDoc, user;
     user = (await remove('/user_auth/delete_all'));
     secret = (await remove('/secret_key/delete_all'));
+    subDoc = (await remove('/sub_doc/delete_all'));
     p.success('Secret key and User Auth cleanup completed.');
-    return assert.equal(user.status === 'ok' && user.statusCode === 200 && user.response.deletedCount === 2 && secret.status === 'ok' && secret.statusCode === 200 && secret.response.deletedCount === 1, true);
+    return assert.equal(user.status === 'ok' && user.statusCode === 200 && user.response.deletedCount === 2 && secret.status === 'ok' && secret.statusCode === 200 && secret.response.deletedCount === 1, subDoc.status === 'ok' && subDoc.statusCode === 200 && subDoc.response.deletedCount === 1 && true);
   });
 });
 
