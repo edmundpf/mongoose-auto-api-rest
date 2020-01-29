@@ -16,7 +16,7 @@ $ api = require('mongoose-auto-api.rest')
 
 ## REST API Details
 * Uses JSON Web Tokens for verification
-  * Tokens last 24 hours and are refreshed every hour upon api use
+  * Tokens last 7 days and are refreshed every hour upon api use
 
 ## General
 * JSON response will contain `{"status": "ok"}` on success, and `{"status": "error"}` on error.
