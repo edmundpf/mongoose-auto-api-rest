@@ -74,10 +74,29 @@ infoModel = """
 }
 """
 
+subDocModel = """
+{
+	name: 'subDoc',
+	schema: {
+		name: {
+			type: new require('mongoose').Schema({
+				address: String,
+			}),
+			required: true,
+		},
+		password: {
+			type: String,
+			encode: true,
+		}
+	},
+}
+"""
+
 models =
 	'./models/customer.js': customerModel
 	'./models/product.js': productModel
 	'./models/info.js': infoModel
+	'./models/subDoc.js': subDocModel
 
 #: Start Server Hook
 
@@ -463,6 +482,7 @@ describe 'API Methods', ->
 			res,
 			'validation failed'
 		)
+
 	it 'Valid insert', ->
 		res = await post("/customer/insert?name=bob&email=bob@email.com")
 		okayExistsAssert(
@@ -470,6 +490,20 @@ describe 'API Methods', ->
 			[
 				'_id',
 				'uid'
+			]
+		)
+
+	it 'Valid sub-document and encoded insert', ->
+		params = new URLSearchParams(
+			name: JSON.stringify(address: 'home')
+			password: 'testPassword'
+		)
+		res = await post("/sub_doc/insert?#{params}")
+		okayExistsAssert(
+			res,
+			[
+				'name',
+				'password'
 			]
 		)
 
@@ -539,6 +573,17 @@ describe 'API Methods', ->
 			res.response.schema.includes('username') and
 			res.response.encrypt_fields.includes('password') and
 			res.response.primary_key == 'username',
+			true
+		)
+
+	it 'Schema info - encoded and sub-document fields', ->
+		res = await get("/sub_doc/schema")
+		assert.equal(
+			res.status == 'ok' and
+			res.statusCode == 200 and
+			res.response.schema.includes('name') and
+			res.response.encode_fields.includes('password') and
+			res.response.subdoc_fields.includes('name')
 			true
 		)
 
@@ -895,6 +940,7 @@ describe 'API Methods', ->
 	it 'Admin Auth cleanup', ->
 		user = await remove('/user_auth/delete_all')
 		secret = await remove('/secret_key/delete_all')
+		subDoc = await remove('/sub_doc/delete_all')
 		p.success('Secret key and User Auth cleanup completed.')
 		assert.equal(
 			user.status == 'ok' and
@@ -903,6 +949,9 @@ describe 'API Methods', ->
 			secret.status == 'ok' and
 			secret.statusCode == 200 and
 			secret.response.deletedCount == 1,
+			subDoc.status == 'ok' and
+			subDoc.statusCode == 200 and
+			subDoc.response.deletedCount == 1 and
 			true
 		)
 

@@ -86,7 +86,9 @@ schemaInfo = function(model) {
     schema: Object.keys(model.model.schema.paths),
     primary_key: model.primaryKey,
     list_fields: model.listFields,
-    encrypt_fields: model.encryptFields
+    encrypt_fields: model.encryptFields,
+    encode_fields: model.encodeFields,
+    subdoc_fields: model.subDocFields
   };
 };
 
