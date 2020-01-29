@@ -178,10 +178,10 @@ noCurrentPass = (res) ->
 
 #::: TOKEN FUNCTIONS :::
 
-# Sign JSON Web Token
+# Sign JSON Web Token (expires in 7 days)
 
 signToken = (user) ->
-	expires_in = 24 * 60 * 60
+	expires_in = 24 * 60 * 60 * 7
 	access_token = jwt.sign(
 		{
 			username: user.username
