@@ -309,7 +309,8 @@ start = () ->
 					if listFields.includes(field)
 						setDict[field] = val.split(',')
 					else
-						normalDict[field] = val
+						if field != 'auth_token'
+							normalDict[field] = val
 				await model.collection.dropIndexes()
 				await responseFormat(
 					model.updateMany.bind(model),
