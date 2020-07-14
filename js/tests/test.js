@@ -57,7 +57,7 @@ before(async function() {
   restServer = require('../index');
   await restServer.start();
   api = restServer.app;
-  port = restServer.config.serverPort;
+  port = process.env.NODE_ENV === 'production' ? process.env.PORT || restServer.config.serverPort : restServer.config.serverPort + 10;
   if (restServer.config.serverAddress !== 'localhost') {
     return url = `https://localhost:${port}`;
   } else {
@@ -538,6 +538,18 @@ describe('API Methods', function() {
     res = (await get(`/customer/get_all?${query}`));
     return assert.equal(res.status === 'ok' && res.statusCode === 200 && res.response.length === 1 && res.response[0].name === 'tom', true);
   });
+  it('Valid get_all sort, limit, and skip', async function() {
+    var query, res;
+    query = {
+      sort_field: 'name',
+      sort_order: -1,
+      record_limit: 1,
+      skip: 1
+    };
+    query = new URLSearchParams(query);
+    res = (await get(`/customer/get_all?${query}`));
+    return assert.equal(res.status === 'ok' && res.statusCode === 200 && res.response.length === 1 && res.response[0].name === 'jerry', true);
+  });
   it('Valid find sort and limit', async function() {
     var query, res, where;
     query = {
@@ -558,6 +570,22 @@ describe('API Methods', function() {
     });
     res = (await get(`/customer/find?${where}&${query}`));
     return assert.equal(res.status === 'ok' && res.statusCode === 200 && res.response.length === 1 && res.response[0].name === 'tom', true);
+  });
+  it('Valid find sort, limit, and skip', async function() {
+    var query, res, where;
+    query = {
+      sort_field: 'name',
+      sort_order: -1,
+      record_limit: 1,
+      skip: 1
+    };
+    where = [];
+    query = new URLSearchParams(query);
+    where = new URLSearchParams({
+      where: JSON.stringify(where)
+    });
+    res = (await get(`/customer/find?${where}&${query}`));
+    return assert.equal(res.status === 'ok' && res.statusCode === 200 && res.response.length === 1, res.response[0].name === 'jerry', true);
   });
   it('Valid non-list field lookup', async function() {
     var query, res;

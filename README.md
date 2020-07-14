@@ -14,6 +14,12 @@
 $ api = require('mongoose-auto-api.rest')
 ```
 
+## Server/CORS Ports
+* assign port with *serverPort* field in apiConfig.json
+	* Runs on this port in production, and this port + 10 by default in development, override with **PORT** environment variable
+* assign cors port (port of your web application) with *webPort* field in apiConfig.json
+	* Allows cors on this port in production, and this port + 10 by default in development, override with **PORT** environment variable
+
 ## REST API Details
 * Uses JSON Web Tokens for verification
   * Tokens last 7 days and are refreshed every hour upon api use
@@ -97,6 +103,8 @@ $ api = require('mongoose-auto-api.rest')
 			* Sort order, -1 for descending, 1 for ascending
 		* *record_limit*
 			* Number of records to return
+		* *skip*
+			* Number of records to skip
 	* Success: `[{attributes...}, {}...]`
 * `x/find`
 	* finds records

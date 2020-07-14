@@ -114,7 +114,7 @@ before(() ->
 	restServer = require('../index')
 	await restServer.start()
 	api = restServer.app
-	port = restServer.config.serverPort
+	port = if process.env.NODE_ENV == 'production' then process.env.PORT || restServer.config.serverPort else restServer.config.serverPort + 10
 	if restServer.config.serverAddress != 'localhost'
 		url = "https://localhost:#{port}"
 	else
@@ -805,6 +805,22 @@ describe 'API Methods', ->
 			true
 		)
 
+	it 'Valid get_all sort, limit, and skip', ->
+		query =
+			sort_field: 'name'
+			sort_order: -1
+			record_limit: 1
+			skip: 1
+		query = new URLSearchParams(query)
+		res = await get("/customer/get_all?#{query}")
+		assert.equal(
+			res.status == 'ok' and
+			res.statusCode == 200 and
+			res.response.length == 1 and
+			res.response[0].name == 'jerry',
+			true
+		)
+
 	it 'Valid find sort and limit', ->
 		query =
 			sort_field: 'name'
@@ -825,6 +841,24 @@ describe 'API Methods', ->
 			res.statusCode == 200 and
 			res.response.length == 1 and
 			res.response[0].name == 'tom',
+			true
+		)
+
+	it 'Valid find sort, limit, and skip', ->
+		query =
+			sort_field: 'name'
+			sort_order: -1
+			record_limit: 1
+			skip: 1
+		where = []
+		query = new URLSearchParams(query)
+		where = new URLSearchParams(where: JSON.stringify(where))
+		res = await get("/customer/find?#{where}&#{query}")
+		assert.equal(
+			res.status == 'ok' and
+			res.statusCode == 200 and
+			res.response.length == 1,
+			res.response[0].name == 'jerry',
 			true
 		)
 

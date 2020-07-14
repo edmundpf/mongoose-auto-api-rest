@@ -32,13 +32,15 @@ parseDataSort = (query, aggregate=false) ->
 	limit = 0
 	sortOrder = 1
 	sortArgs = null
-	sortField = 'createdAt'
+	sortField = 'updatedAt'
 	if query.sort_order?
 		sortOrder = Number(query.sort_order)
 	if query.sort_field?
 		sortField = query.sort_field
 	if query.record_limit?
 		limit = Number(query.record_limit)
+	if query.skip?
+		skip = Number(query.skip)
 	if aggregate
 		sortArgs = [
 			{
@@ -46,6 +48,10 @@ parseDataSort = (query, aggregate=false) ->
 					[sortField]: sortOrder
 			}
 		]
+		if skip
+			sortArgs.push(
+				$skip: skip
+			)
 		if limit != 0
 			sortArgs.push(
 				$limit: limit
@@ -54,6 +60,8 @@ parseDataSort = (query, aggregate=false) ->
 		sortArgs =
 			sort:
 				[sortField]: sortOrder
+		if skip
+			sortArgs.skip = skip
 		if limit != 0
 			sortArgs.limit = limit
 	return sortArgs

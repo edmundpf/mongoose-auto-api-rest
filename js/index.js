@@ -1,4 +1,4 @@
-var allowedPassword, allowedSecretKey, app, appRoutes, assert, bcrypt, cors, corsPort, databaseName, error, errorObj, express, fs, https, incorrectSecretKey, incorrectUserOrPass, init, listMethods, listRoutes, main, models, mongoose, mongooseConnect, mongoosePort, noCurrentPass, normalMethods, normalRoutes, objOmit, p, parseDataSort, parseQuery, path, publicIp, responseFormat, routeMethods, schemaAsync, secretKey, serverAddress, serverConfig, serverPort, serverStarted, signToken, start, updateQuery, userAuth, userNotFound, verifyToken;
+var allowedPassword, allowedSecretKey, app, appRoutes, assert, bcrypt, compression, cors, corsPort, databaseName, error, errorObj, express, fs, https, incorrectSecretKey, incorrectUserOrPass, init, listMethods, listRoutes, main, models, mongoose, mongooseConnect, mongoosePort, noCurrentPass, normalMethods, normalRoutes, objOmit, p, parseDataSort, parseQuery, path, publicIp, responseFormat, routeMethods, schemaAsync, secretKey, serverAddress, serverConfig, serverPort, serverStarted, signToken, start, updateQuery, userAuth, userNotFound, verifyToken;
 
 fs = require('fs');
 
@@ -19,6 +19,8 @@ p = require('print-tools-js');
 mongoose = require('mongoose');
 
 publicIp = require('public-ip');
+
+compression = require('compression');
 
 models = require('mongoose-auto-api.models');
 
@@ -72,9 +74,9 @@ try {
   p.warning('Could not load app config file, using default configuration.');
 }
 
-serverPort = serverConfig.serverPort || process.env.PORT;
+serverPort = process.env.NODE_ENV === 'production' ? process.env.PORT || serverConfig.serverPort : serverConfig.serverPort + 10;
 
-corsPort = serverConfig.webPort;
+corsPort = process.env.NODE_ENV === 'production' ? process.env.WEB_PORT || serverConfig.webPort : serverConfig.webPort + 10;
 
 mongoosePort = serverConfig.mongoosePort;
 
@@ -117,7 +119,12 @@ serverStarted = () => {
 
 //: Init Server
 init = async function() {
-  serverAddress = (await publicIp.v4());
+  try {
+    serverAddress = (await publicIp.v4());
+  } catch (error1) {
+    error = error1;
+    serverAddress = 'localhost';
+  }
   return (await mongooseConnect());
 };
 
@@ -134,6 +141,7 @@ start = function() {
   certExists = fs.existsSync(certPath);
   chainExists = fs.existsSync(chainPath);
   if (serverConfig.serverAddress !== 'localhost' && keyExists && certExists && chainExists) {
+    app.use(compression);
     app.use(cors({
       origin: [`http://localhost:${corsPort}`, `https://localhost:${corsPort}`, `http://${serverAddress}:${corsPort}`, `https://${serverAddress}:${corsPort}`, `http://${serverConfig.serverAddress}:${corsPort}`, `https://${serverConfig.serverAddress}:${corsPort}`],
       exposedHeaders: ['X-Access-Token']

@@ -8,6 +8,7 @@ express = require('express')
 p = require('print-tools-js')
 mongoose = require('mongoose')
 publicIp = require('public-ip')
+compression = require('compression')
 models = require('mongoose-auto-api.models')
 
 listRoutes = require('./utils/routeWrapper').listRoutes
@@ -39,8 +40,9 @@ catch error
 	serverConfig = require('./data/defaultConfig.json')
 	p.warning('Could not load app config file, using default configuration.')
 
-serverPort = serverConfig.serverPort || process.env.PORT
-corsPort = serverConfig.webPort
+
+serverPort = if process.env.NODE_ENV == 'production' then process.env.PORT || serverConfig.serverPort else serverConfig.serverPort + 10
+corsPort = if process.env.NODE_ENV == 'production' then process.env.WEB_PORT || serverConfig.webPort else serverConfig.webPort + 10
 mongoosePort = serverConfig.mongoosePort
 databaseName = serverConfig.databaseName
 userAuth = models.userAuth.model
@@ -76,7 +78,10 @@ serverStarted = () =>
 
 init = () ->
 
-	serverAddress = await publicIp.v4()
+	try
+		serverAddress = await publicIp.v4()
+	catch error
+		serverAddress = 'localhost'
 	await mongooseConnect()
 
 #: Start Server
@@ -96,6 +101,7 @@ start = () ->
 
 	if serverConfig.serverAddress != 'localhost' and keyExists and certExists and chainExists
 
+		app.use(compression)
 		app.use(
 			cors(
 				origin: [

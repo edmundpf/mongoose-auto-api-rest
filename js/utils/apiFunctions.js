@@ -38,11 +38,11 @@ errorObj = function(error) {
 
 //: Parse Data Sort
 parseDataSort = function(query, aggregate = false) {
-  var limit, sortArgs, sortField, sortOrder;
+  var limit, skip, sortArgs, sortField, sortOrder;
   limit = 0;
   sortOrder = 1;
   sortArgs = null;
-  sortField = 'createdAt';
+  sortField = 'updatedAt';
   if (query.sort_order != null) {
     sortOrder = Number(query.sort_order);
   }
@@ -52,6 +52,9 @@ parseDataSort = function(query, aggregate = false) {
   if (query.record_limit != null) {
     limit = Number(query.record_limit);
   }
+  if (query.skip != null) {
+    skip = Number(query.skip);
+  }
   if (aggregate) {
     sortArgs = [
       {
@@ -60,6 +63,11 @@ parseDataSort = function(query, aggregate = false) {
         }
       }
     ];
+    if (skip) {
+      sortArgs.push({
+        $skip: skip
+      });
+    }
     if (limit !== 0) {
       sortArgs.push({
         $limit: limit
@@ -71,6 +79,9 @@ parseDataSort = function(query, aggregate = false) {
         [sortField]: sortOrder
       }
     };
+    if (skip) {
+      sortArgs.skip = skip;
+    }
     if (limit !== 0) {
       sortArgs.limit = limit;
     }
