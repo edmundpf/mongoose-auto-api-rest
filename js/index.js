@@ -140,8 +140,8 @@ start = function() {
   keyExists = fs.existsSync(keyPath);
   certExists = fs.existsSync(certPath);
   chainExists = fs.existsSync(chainPath);
+  app.use(compression());
   if (serverConfig.serverAddress !== 'localhost' && keyExists && certExists && chainExists) {
-    app.use(compression);
     app.use(cors({
       origin: [`http://localhost:${corsPort}`, `https://localhost:${corsPort}`, `http://${serverAddress}:${corsPort}`, `https://${serverAddress}:${corsPort}`, `http://${serverConfig.serverAddress}:${corsPort}`, `https://${serverConfig.serverAddress}:${corsPort}`],
       exposedHeaders: ['X-Access-Token']

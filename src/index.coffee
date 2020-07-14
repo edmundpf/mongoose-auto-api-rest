@@ -99,9 +99,10 @@ start = () ->
 	certExists = fs.existsSync(certPath)
 	chainExists = fs.existsSync(chainPath)
 
+	app.use(compression())
+
 	if serverConfig.serverAddress != 'localhost' and keyExists and certExists and chainExists
 
-		app.use(compression)
 		app.use(
 			cors(
 				origin: [
