@@ -1,230 +1,264 @@
-fs = require('fs')
-path = require('path')
-https = require('https')
-cors = require('cors')
-assert = require('assert')
-bcrypt = require('bcrypt')
-express = require('express')
-p = require('print-tools-js')
-mongoose = require('mongoose')
-publicIp = require('public-ip')
-compression = require('compression')
-models = require('mongoose-auto-api.models')
+/*
+ * decaffeinate suggestions:
+ * DS101: Remove unnecessary use of Array.from
+ * DS102: Remove unnecessary code created because of implicit returns
+ * DS207: Consider shorter variations of null checks
+ * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
+ */
+let serverConfig;
+import fs from 'fs';
+import path from 'path';
+import https from 'https';
+import cors from 'cors';
+import assert from 'assert';
+import bcrypt from 'bcrypt';
+import express from 'express';
+import p from 'print-tools-js';
+import mongoose from 'mongoose';
+import publicIp from 'public-ip';
+import compression from 'compression';
+import models from 'mongoose-auto-api.models';
+import { listRoutes } from './utils/routeWrapper';
+import { normalRoutes } from './utils/routeWrapper';
+import { appRoutes } from './utils/routeWrapper';
+import { listMethods } from './utils/routeWrapper';
+import { normalMethods } from './utils/routeWrapper';
+import { routeMethods } from './utils/routeWrapper';
+import { objOmit } from './utils/apiFunctions';
+import { errorObj } from './utils/apiFunctions';
+import { parseDataSort } from './utils/apiFunctions';
+import { schemaAsync } from './utils/apiFunctions';
+import { updateQuery } from './utils/apiFunctions';
+import { allowedPassword } from './utils/apiFunctions';
+import { allowedSecretKey } from './utils/apiFunctions';
+import { responseFormat } from './utils/apiFunctions';
+import { incorrectSecretKey } from './utils/apiFunctions';
+import { incorrectUserOrPass } from './utils/apiFunctions';
+import { userNotFound } from './utils/apiFunctions';
+import { noCurrentPass } from './utils/apiFunctions';
+import { signToken } from './utils/apiFunctions';
+import { verifyToken } from './utils/apiFunctions';
+import parseQuery from './utils/parseQuery';
 
-listRoutes = require('./utils/routeWrapper').listRoutes
-normalRoutes = require('./utils/routeWrapper').normalRoutes
-appRoutes = require('./utils/routeWrapper').appRoutes
-listMethods = require('./utils/routeWrapper').listMethods
-normalMethods = require('./utils/routeWrapper').normalMethods
-routeMethods = require('./utils/routeWrapper').routeMethods
-
-objOmit = require('./utils/apiFunctions').objOmit
-errorObj = require('./utils/apiFunctions').errorObj
-parseDataSort = require('./utils/apiFunctions').parseDataSort
-schemaAsync = require('./utils/apiFunctions').schemaAsync
-updateQuery = require('./utils/apiFunctions').updateQuery
-allowedPassword = require('./utils/apiFunctions').allowedPassword
-allowedSecretKey = require('./utils/apiFunctions').allowedSecretKey
-responseFormat = require('./utils/apiFunctions').responseFormat
-incorrectSecretKey = require('./utils/apiFunctions').incorrectSecretKey
-incorrectUserOrPass = require('./utils/apiFunctions').incorrectUserOrPass
-userNotFound = require('./utils/apiFunctions').userNotFound
-noCurrentPass = require('./utils/apiFunctions').noCurrentPass
-signToken = require('./utils/apiFunctions').signToken
-verifyToken = require('./utils/apiFunctions').verifyToken
-parseQuery = require('./utils/parseQuery')
-
-try
-	serverConfig = require('../../../appConfig.json')
-catch error
-	serverConfig = require('./data/defaultConfig.json')
-	p.warning('Could not load app config file, using default configuration.')
+try {
+	serverConfig = require('../../../appConfig.json');
+} catch (error1) {
+	const error = error1;
+	serverConfig = require('./data/defaultConfig.json');
+	p.warning('Could not load app config file, using default configuration.');
+}
 
 
-serverPort = if process.env.NODE_ENV == 'production' then process.env.PORT || serverConfig.serverPort else serverConfig.serverPort + 10
-corsPort = if process.env.NODE_ENV == 'production' then process.env.WEB_PORT || serverConfig.webPort else serverConfig.webPort + 10
-mongoosePort = serverConfig.mongoosePort
-databaseName = serverConfig.databaseName
-userAuth = models.userAuth.model
-secretKey = models.secretKey.model
-serverAddress = null
-app = express()
+const serverPort = process.env.NODE_ENV === 'production' ? process.env.PORT || serverConfig.serverPort : serverConfig.serverPort + 10;
+const corsPort = process.env.NODE_ENV === 'production' ? process.env.WEB_PORT || serverConfig.webPort : serverConfig.webPort + 10;
+const {
+    mongoosePort
+} = serverConfig;
+const {
+    databaseName
+} = serverConfig;
+const userAuth = models.userAuth.model;
+const secretKey = models.secretKey.model;
+let serverAddress = null;
+const app = express();
 
-#: MongoDB Config
+//: MongoDB Config
 
-mongooseConnect = () ->
-	try
-		return await mongoose.connect("mongodb://localhost:#{mongoosePort}/#{databaseName}",
+const mongooseConnect = function() {
+	try {
+		return await(mongoose.connect(`mongodb://localhost:${mongoosePort}/${databaseName}`, {
 			useNewUrlParser: true,
 			useUnifiedTopology: true,
 			useCreateIndex: true,
 			useFindAndModify: false
+		}
 		)
-	catch error
-		p.error('MongoDB Service is not started.')
-		process.exit(1)
+		);
+	} catch (error) {
+		p.error('MongoDB Service is not started.');
+		return process.exit(1);
+	}
+};
 
-#: Server Started Function
+//: Server Started Function
 
-serverStarted = () =>
-	p.success("Public IP: #{serverAddress}", log: false)
-	p.titleBox(
-		"Data API Server"
-		titleDesc: "Running on port #{serverPort}"
-		tagLine: "Connecting to Mongo database: #{databaseName} on port #{mongoosePort}"
-	)
+const serverStarted = () => {
+	p.success(`Public IP: ${serverAddress}`, {log: false});
+	return p.titleBox(
+		"Data API Server", {
+		titleDesc: `Running on port ${serverPort}`,
+		tagLine: `Connecting to Mongo database: ${databaseName} on port ${mongoosePort}`
+	}
+	);
+};
 
-#: Init Server
+//: Init Server
 
-init = () ->
+const init = function() {
 
-	try
-		serverAddress = await publicIp.v4()
-	catch error
-		serverAddress = 'localhost'
-	await mongooseConnect()
+	try {
+		serverAddress = await(publicIp.v4());
+	} catch (error) {
+		serverAddress = 'localhost';
+	}
+	return await(mongooseConnect());
+};
 
-#: Start Server
+//: Start Server
 
-start = () ->
+const start = function() {
 
-	keyPath = if serverConfig.sslKey then serverConfig.sslKey else "/etc/letsencrypt/live/#{serverConfig.serverAddress}/privkey.pem"
-	certPath = if serverConfig.sslCert then serverConfig.sslCert else "/etc/letsencrypt/live/#{serverConfig.serverAddress}/cert.pem"
-	chainPath = if serverConfig.sslChain then serverConfig.sslChain else "/etc/letsencrypt/live/#{serverConfig.serverAddress}/chain.pem"
-	keyPath = path.resolve(keyPath)
-	certPath = path.resolve(certPath)
-	chainPath = path.resolve(chainPath)
+	let keyPath = serverConfig.sslKey ? serverConfig.sslKey : `/etc/letsencrypt/live/${serverConfig.serverAddress}/privkey.pem`;
+	let certPath = serverConfig.sslCert ? serverConfig.sslCert : `/etc/letsencrypt/live/${serverConfig.serverAddress}/cert.pem`;
+	let chainPath = serverConfig.sslChain ? serverConfig.sslChain : `/etc/letsencrypt/live/${serverConfig.serverAddress}/chain.pem`;
+	keyPath = path.resolve(keyPath);
+	certPath = path.resolve(certPath);
+	chainPath = path.resolve(chainPath);
 
-	keyExists = fs.existsSync(keyPath)
-	certExists = fs.existsSync(certPath)
-	chainExists = fs.existsSync(chainPath)
+	const keyExists = fs.existsSync(keyPath);
+	const certExists = fs.existsSync(certPath);
+	const chainExists = fs.existsSync(chainPath);
 
-	app.use(compression())
+	app.use(compression());
 
-	if serverConfig.serverAddress != 'localhost' and keyExists and certExists and chainExists
+	if ((serverConfig.serverAddress !== 'localhost') && keyExists && certExists && chainExists) {
 
 		app.use(
-			cors(
+			cors({
 				origin: [
-					"http://localhost:#{corsPort}"
-					"https://localhost:#{corsPort}"
-					"http://#{serverAddress}:#{corsPort}"
-					"https://#{serverAddress}:#{corsPort}"
-					"http://#{serverConfig.serverAddress}:#{corsPort}"
-					"https://#{serverConfig.serverAddress}:#{corsPort}"
-				]
-				exposedHeaders: [ 'X-Access-Token' ],
-			)
-		)
+					`http://localhost:${corsPort}`,
+					`https://localhost:${corsPort}`,
+					`http://${serverAddress}:${corsPort}`,
+					`https://${serverAddress}:${corsPort}`,
+					`http://${serverConfig.serverAddress}:${corsPort}`,
+					`https://${serverConfig.serverAddress}:${corsPort}`
+				],
+				exposedHeaders: [ 'X-Access-Token' ]
+			})
+		);
 
-		p.success('Secure server starting...', log: false)
+		p.success('Secure server starting...', {log: false});
 		https.createServer(
 			{
-				key: fs.readFileSync(keyPath)
-				cert: fs.readFileSync(certPath)
+				key: fs.readFileSync(keyPath),
+				cert: fs.readFileSync(certPath),
 				ca: fs.readFileSync(chainPath)
 			},
 			app
-		).listen(serverPort, serverStarted)
-	else
+		).listen(serverPort, serverStarted);
+	} else {
 
 		app.use(
-			cors(
-				origin: "http://localhost:#{corsPort}"
-				exposedHeaders: [ 'X-Access-Token' ],
-			)
-		)
+			cors({
+				origin: `http://localhost:${corsPort}`,
+				exposedHeaders: [ 'X-Access-Token' ]
+			})
+		);
 
-		p.warning('Insecure server starting', log: false)
-		app.listen(serverPort, serverStarted)
+		p.warning('Insecure server starting', {log: false});
+		app.listen(serverPort, serverStarted);
+	}
 
-	#: All Routes
+	//: All Routes
 
-	app.all("/:path(#{Object.keys(appRoutes).join('|')})/:method(#{normalMethods.join('|')})",
-		verifyToken, (req, res) =>
+	app.all(`/:path(${Object.keys(appRoutes).join('|')})/:method(${normalMethods.join('|')})`,
+		verifyToken, (req, res) => {
 
-			modelInfo = appRoutes[req.params.path]
-			model = modelInfo.model
-			primaryKey = modelInfo.primaryKey
+			let field, sortArgs;
+			const modelInfo = appRoutes[req.params.path];
+			const {
+                model
+            } = modelInfo;
+			const {
+                primaryKey
+            } = modelInfo;
 
-			#: Format Sub-Document fields
+			//: Format Sub-Document fields
 
-			if ['update', 'insert'].includes(req.params.method)
-				for field in modelInfo.subDocFields
-					if typeof req.query[field] == 'string'
-						req.query[field] = JSON.parse(req.query[field])
+			if (['update', 'insert'].includes(req.params.method)) {
+				for (field of Array.from(modelInfo.subDocFields)) {
+					if (typeof req.query[field] === 'string') {
+						req.query[field] = JSON.parse(req.query[field]);
+					}
+				}
+			}
 
-			#: Insert
+			//: Insert
 
-			if req.params.method == 'insert'
-				await responseFormat(
+			if (req.params.method === 'insert') {
+				return await(responseFormat(
 					model.create.bind(model),
 					[req.query],
 					req,
 					res
 				)
+				);
 
-			#: Update
+			//: Update
 
-			else if req.params.method == 'update'
+			} else if (req.params.method === 'update') {
 
-				await responseFormat(
+				return await(responseFormat(
 					model.updateOne.bind(model),
 					[
 						{
-							# [primaryKey]: req.query[primaryKey]
+							// [primaryKey]: req.query[primaryKey]
 						},
 						updateQuery(req, primaryKey)
 					],
 					req,
 					res
 				)
+				);
 
-			#: Delete
+			//: Delete
 
-			else if req.params.method == 'delete'
-				await responseFormat(
+			} else if (req.params.method === 'delete') {
+				return await(responseFormat(
 					model.deleteOne.bind(model),
 					[
 						{
-							# [primaryKey]: req.query[primaryKey]
+							// [primaryKey]: req.query[primaryKey]
 						}
 					],
 					req,
 					res
 				)
+				);
 
-			#: Delete All
+			//: Delete All
 
-			else if req.params.method == 'delete_all'
-				await responseFormat(
+			} else if (req.params.method === 'delete_all') {
+				return await(responseFormat(
 					model.deleteMany.bind(model),
 					[{}],
 					req,
 					res
 				)
+				);
 
-			#: Get
+			//: Get
 
-			else if req.params.method == 'get'
-				await responseFormat(
+			} else if (req.params.method === 'get') {
+				return await(responseFormat(
 					model.find.bind(model),
 					[
 						{
-							# [primaryKey]: req.query[primaryKey]
+							// [primaryKey]: req.query[primaryKey]
 						}
 					],
 					req,
 					res
 				)
+				);
 
-			#: Get All
+			//: Get All
 
-			else if req.params.method == 'get_all'
+			} else if (req.params.method === 'get_all') {
 
-				sortArgs = parseDataSort(req.query, false)
+				sortArgs = parseDataSort(req.query, false);
 
-				await responseFormat(
+				return await(responseFormat(
 					model.find.bind(model),
 					[
 						{},
@@ -234,53 +268,60 @@ start = () ->
 					req,
 					res
 				)
+				);
 
-			#: Find
+			//: Find
 
-			else if req.params.method == 'find'
+			} else if (req.params.method === 'find') {
 
-				sortArgs = parseDataSort(req.query, true)
+				let aggArgs;
+				sortArgs = parseDataSort(req.query, true);
 
-				if req.query.local_field? and req.query.from? and req.query.foreign_field? and req.query.as?
-					lookup =
-						$lookup:
-							from: req.query.from
-							localField: req.query.local_field
-							foreignField: req.query.foreign_field
+				if ((req.query.local_field != null) && (req.query.from != null) && (req.query.foreign_field != null) && (req.query.as != null)) {
+					const lookup = {
+						$lookup: {
+							from: req.query.from,
+							localField: req.query.local_field,
+							foreignField: req.query.foreign_field,
 							as: req.query.as
-					if modelInfo.listFields.includes(req.query.local_field)
+						}
+					};
+					if (modelInfo.listFields.includes(req.query.local_field)) {
 						aggArgs = [
 							parseQuery(model, req.query.where),
 							lookup
-						]
-					else
-						unwind =
-							$unwind: "$#{req.query.as}"
+						];
+					} else {
+						const unwind =
+							{$unwind: `$${req.query.as}`};
 						aggArgs = [
 							parseQuery(model, req.query.where),
 							lookup,
 							unwind,
-							# ...sortArgs,
-						]
+							// ...sortArgs,
+						];
+					}
 
-				else
+				} else {
 					aggArgs = [
 						parseQuery(model, req.query.where),
-						# ...sortArgs,
-					]
+						// ...sortArgs,
+					];
+				}
 
-				await responseFormat(
+				return await(responseFormat(
 					model.aggregate.bind(model),
 					aggArgs,
 					req,
 					res,
 					false
 				)
+				);
 
-			#: Get Schema Info
+			//: Get Schema Info
 
-			else if req.params.method == 'schema'
-				await responseFormat(
+			} else if (req.params.method === 'schema') {
+				return await(responseFormat(
 					schemaAsync,
 					[
 						modelInfo
@@ -288,43 +329,53 @@ start = () ->
 					req,
 					res
 				)
+				);
 
-			#: Sterilize: removes fields not in schema, sets all query fields to specified value for all docs
+			//: Sterilize: removes fields not in schema, sets all query fields to specified value for all docs
 
-			else if req.params.method == 'sterilize'
-				setDict = {}
-				unsetDict = {}
-				normalDict = {}
-				mongoFields = [
+			} else if (req.params.method === 'sterilize') {
+				const setDict = {};
+				const unsetDict = {};
+				const normalDict = {};
+				const mongoFields = [
 					'_id',
 					'createdAt',
 					'updatedAt',
 					'uid',
 					'__v'
-				]
-				allFields = [
-					# ...mongoFields
-					# ...modelInfo.allFields
-				]
-				listFields = modelInfo.listFields
-				records = await model.find({}).lean()
-				for record in records
-					for key of record
-						if !allFields.includes(key) and !Object.keys(unsetDict).includes(key)
-							unsetDict[key] = 1
-				for field, val of req.query
-					if listFields.includes(field)
-						setDict[field] = val.split(',')
-					else
-						if field != 'auth_token'
-							normalDict[field] = val
-				await model.collection.dropIndexes()
-				await responseFormat(
+				];
+				const allFields = [
+					// ...mongoFields
+					// ...modelInfo.allFields
+				];
+				const {
+                    listFields
+                } = modelInfo;
+				const records = await(model.find({}).lean());
+				for (let record of Array.from(records)) {
+					for (let key in record) {
+						if (!allFields.includes(key) && !Object.keys(unsetDict).includes(key)) {
+							unsetDict[key] = 1;
+						}
+					}
+				}
+				for (field in req.query) {
+					const val = req.query[field];
+					if (listFields.includes(field)) {
+						setDict[field] = val.split(',');
+					} else {
+						if (field !== 'auth_token') {
+							normalDict[field] = val;
+						}
+					}
+				}
+				await(model.collection.dropIndexes());
+				return await(responseFormat(
 					model.updateMany.bind(model),
 					[
 						{},
 						{
-							# ...normalDict,
+							// ...normalDict,
 							$set: setDict,
 							$unset: unsetDict,
 						},
@@ -335,38 +386,47 @@ start = () ->
 					],
 					req,
 					res
-				)
-	)
+				));
+			}
+	});
 
-	#: List Routes
+	//: List Routes
 
-	app.all("/:path(#{Object.keys(listRoutes).join('|')})/:method(#{listMethods.join('|')})",
-		verifyToken, (req, res) =>
+	app.all(`/:path(${Object.keys(listRoutes).join('|')})/:method(${listMethods.join('|')})`,
+		verifyToken, (req, res) => {
 
-			model = appRoutes[req.params.path].model
-			primaryKey = appRoutes[req.params.path].primaryKey
+			const {
+                model
+            } = appRoutes[req.params.path];
+			const {
+                primaryKey
+            } = appRoutes[req.params.path];
 
-			if ['push', 'push_unique', 'set'].includes(req.params.method)
-				updateDict = {}
-				for key of req.query
-					if ![primaryKey, 'auth_token', 'refresh_token'].includes(key)
-						if req.params.method != 'set'
+			if (['push', 'push_unique', 'set'].includes(req.params.method)) {
+				const updateDict = {};
+				for (let key in req.query) {
+					if (![primaryKey, 'auth_token', 'refresh_token'].includes(key)) {
+						if (req.params.method !== 'set') {
 							updateDict[key] =
-								$each: req.query[key].split(',')
-						else
-							if req.query[key] != '[]'
-								updateDict[key] = req.query[key].split(',')
-							else
-								updateDict[key] = []
+								{$each: req.query[key].split(',')};
+						} else {
+							if (req.query[key] !== '[]') {
+								updateDict[key] = req.query[key].split(',');
+							} else {
+								updateDict[key] = [];
+							}
+						}
+					}
+				}
 
-				#: Push
+				//: Push
 
-				if req.params.method == 'push'
-					await responseFormat(
+				if (req.params.method === 'push') {
+					return await(responseFormat(
 						model.updateOne.bind(model),
 						[
 							{
-								# [primaryKey]: req.query[primaryKey]
+								// [primaryKey]: req.query[primaryKey]
 							},
 							{
 								$push: updateDict
@@ -375,15 +435,16 @@ start = () ->
 						req,
 						res
 					)
+					);
 
-				#: Push Unique
+				//: Push Unique
 
-				else if req.params.method == 'push_unique'
-					await responseFormat(
+				} else if (req.params.method === 'push_unique') {
+					return await(responseFormat(
 						model.updateOne.bind(model),
 						[
 							{
-								# [primaryKey]: req.query[primaryKey]
+								// [primaryKey]: req.query[primaryKey]
 							},
 							{
 								$addToSet: updateDict
@@ -392,15 +453,16 @@ start = () ->
 						req,
 						res
 					)
+					);
 
-				#: Set
+				//: Set
 
-				else if req.params.method == 'set'
-					await responseFormat(
+				} else if (req.params.method === 'set') {
+					return await(responseFormat(
 						model.updateOne.bind(model),
 						[
 							{
-								# [primaryKey]: req.query[primaryKey]
+								// [primaryKey]: req.query[primaryKey]
 							},
 							{
 								$set: updateDict
@@ -408,191 +470,226 @@ start = () ->
 						],
 						req,
 						res
-					)
-	)
+					));
+				}
+			}
+	});
 
-	#: Login
+	//: Login
 
-	app.all('/login', (req, res) =>
-		try
-			user = await userAuth.findOne(
+	app.all('/login', (req, res) => {
+		try {
+			const user = await(userAuth.findOne({
 				username: req.query.username
-			)
-			if user
-				passMatch = await bcrypt.compare(
+			})
+			);
+			if (user) {
+				const passMatch = await(bcrypt.compare(
 					req.query.password,
 					user.password
 				)
-				if !passMatch
-					return incorrectUserOrPass(res)
-				else
-					token = signToken(user)
-					return res.json(
-						status: 'ok'
+				);
+				if (!passMatch) {
+					return incorrectUserOrPass(res);
+				} else {
+					const token = signToken(user);
+					return res.json({
+						status: 'ok',
 						response: token
-					)
-			else
-				return userNotFound(res)
-		catch error
-			return res.status(500).json(
-				status: 'error'
+					});
+				}
+			} else {
+				return userNotFound(res);
+			}
+		} catch (error) {
+			return res.status(500).json({
+				status: 'error',
 				response: errorObj(error)
-			)
-	)
+			});
+		}
+	});
 
-	#: Edit Secret Key
+	//: Edit Secret Key
 
-	app.all('/:path(update_secret_key)', verifyToken, (req, res) =>
-		try
+	app.all('/:path(update_secret_key)', verifyToken, (req, res) => {
+		let response;
+		try {
 
-			isValid = allowedSecretKey(req)
-			if isValid != true
-				return res.status(401).json(isValid)
+			const isValid = allowedSecretKey(req);
+			if (isValid !== true) {
+				return res.status(401).json(isValid);
+			}
 
-			key = await secretKey.find({})
-			if key.length == 0
-				response = await secretKey.create(req.query)
-			else
-				response = await secretKey.updateOne(
+			const key = await(secretKey.find({}));
+			if (key.length === 0) {
+				response = await(secretKey.create(req.query));
+			} else {
+				response = await(secretKey.updateOne(
 					{
 						key: key[key.length - 1].key
 					},
 					req.query
 				)
-			return res.json(
-				status: 'ok'
-				response: response
-			)
+				);
+			}
+			return res.json({
+				status: 'ok',
+				response
+			});
 
-		catch error
-			return res.status(500).json(
-				status: 'error'
+		} catch (error) {
+			return res.status(500).json({
+				status: 'error',
 				response: errorObj(error)
-			)
-	)
+			});
+		}
+	});
 
-	#: Sign Up
+	//: Sign Up
 
-	app.all('/:path(signup)', verifyToken, (req, res) =>
-		try
-			if req.query.secret_key?
+	app.all('/:path(signup)', verifyToken, (req, res) => {
+		let response;
+		try {
+			if (req.query.secret_key != null) {
 
-				key = await secretKey.find({})
-				if key.length > 0
-					key_match = await bcrypt.compare(
+				const key = await(secretKey.find({}));
+				if (key.length > 0) {
+					const key_match = await(bcrypt.compare(
 						req.query.secret_key,
 						key[key.length - 1].key
 					)
-					if !key_match
-						return incorrectSecretKey(res)
+					);
+					if (!key_match) {
+						return incorrectSecretKey(res);
+					}
+				}
 
-				isValid = allowedPassword(req)
-				if isValid != true
-					return res.status(401).json(isValid)
-				response = await userAuth.create(req.query)
+				const isValid = allowedPassword(req);
+				if (isValid !== true) {
+					return res.status(401).json(isValid);
+				}
+				response = await(userAuth.create(req.query));
 
-				if req.query.username == response.username
-					token = signToken(response)
-					return res.json(
-						status: 'ok'
+				if (req.query.username === response.username) {
+					const token = signToken(response);
+					return res.json({
+						status: 'ok',
 						response: token
-					)
-				else
-					return res.status(401).json(
-						status: 'error'
-						response: response
-					)
+					});
+				} else {
+					return res.status(401).json({
+						status: 'error',
+						response
+					});
+				}
 
-			else
-				return res.status(401).json(
-					status: 'error'
-					response:
+			} else {
+				return res.status(401).json({
+					status: 'error',
+					response: {
 						message: 'Not Authorized.'
-				)
+					}
+				});
+			}
 
-		catch error
-			return res.status(500).json(
-				status: 'error'
+		} catch (error) {
+			return res.status(500).json({
+				status: 'error',
 				response: errorObj(error)
-			)
-	)
+			});
+		}
+	});
 
-	#: Update Password
+	//: Update Password
 
-	app.all('/update_password', (req, res) =>
+	app.all('/update_password', (req, res) => {
 
-		try
-			user = await userAuth.findOne(
+		try {
+			const user = await(userAuth.findOne({
 				username: req.query.username
-			)
+			})
+			);
 
-			if user && req.query.current_password?
-				passMatch = await bcrypt.compare(
+			if (user && (req.query.current_password != null)) {
+				const passMatch = await(bcrypt.compare(
 					req.query.current_password,
 					user.password
 				)
-				if !passMatch
-					return incorrectUserOrPass(res)
-			else if !user
-				return userNotFound(res)
-			else if !req.query.current_password?
-				return noCurrentPass(res)
+				);
+				if (!passMatch) {
+					return incorrectUserOrPass(res);
+				}
+			} else if (!user) {
+				return userNotFound(res);
+			} else if ((req.query.current_password == null)) {
+				return noCurrentPass(res);
+			}
 
-			isValid = allowedPassword(req)
-			if isValid != true
-				return res.status(401).json(isValid)
-			passUpdate = await userAuth.updateOne(
+			const isValid = allowedPassword(req);
+			if (isValid !== true) {
+				return res.status(401).json(isValid);
+			}
+			const passUpdate = await(userAuth.updateOne(
 				{ username: req.query.username },
 				objOmit(req.query, ['username'])
 			)
+			);
 
-			if passUpdate.nModified == 1
-				return res.json(
-					status: 'ok'
-					response:
+			if (passUpdate.nModified === 1) {
+				return res.json({
+					status: 'ok',
+					response: {
 						message: 'Password updated.'
-					)
-			else
-				return res.status(401).json(
-					status: 'error'
+					}
+					});
+			} else {
+				return res.status(401).json({
+					status: 'error',
 					response: passUpdate
-				)
-		catch error
-			return res.status(500).json(
-				status: 'error'
+				});
+			}
+		} catch (error) {
+			return res.status(500).json({
+				status: 'error',
 				response: errorObj(error)
-			)
-	)
+			});
+		}
+	});
 
-	#: Verify Token
+	//: Verify Token
 
-	app.all('/verify_token', verifyToken, (req, res) =>
-		if res.locals.refresh_token?
-			return res.json(
+	return app.all('/verify_token', verifyToken, (req, res) => {
+		if (res.locals.refresh_token != null) {
+			return res.json({
 				status: 'ok',
-				refresh_token: res.locals.refresh_token
-				response:
+				refresh_token: res.locals.refresh_token,
+				response: {
 					message: 'Token verified.'
-			)
-		else
-			return res.json(
-				status: 'ok'
-				response:
+				}
+			});
+		} else {
+			return res.json({
+				status: 'ok',
+				response: {
 					message: 'Token verified.'
-			)
-	)
+				}
+			});
+		}
+	});
+};
 
-#: Main
+//: Main
 
-main = () ->
-	await init()
-	start()
+const main = function() {
+	await(init());
+	return start();
+};
 
-#: Exports
+//: Exports
 
-module.exports = {
-	app: app
-	start: main
-	models: models
+export default {
+	app,
+	start: main,
+	models,
 	config: serverConfig
-}
+};

@@ -1,87 +1,107 @@
-#: Parse Query
+/*
+ * decaffeinate suggestions:
+ * DS101: Remove unnecessary use of Array.from
+ * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
+ */
+//: Parse Query
 
-parseQuery = (model, query) ->
-	mongoOps = [
-		'$eq'
-		'$ne'
-		'$gt'
-		'$gte'
-		'$lt'
-		'$lte'
+const parseQuery = function(model, query) {
+	const mongoOps = [
+		'$eq',
+		'$ne',
+		'$gt',
+		'$gte',
+		'$lt',
+		'$lte',
 		'$in'
-	]
-	regOps = [
-		'$strt'
-		'$end'
+	];
+	const regOps = [
+		'$strt',
+		'$end',
 		'$cont'
-	]
-	incOps = [
-		'$nin'
-		'$inc'
+	];
+	const incOps = [
+		'$nin',
+		'$inc',
 		'$ninc'
-	]
-	allOps = [
-		# ...mongoOps,
-		# ...regOps,
-		# ...incOps,
-	]
-	match =
-		$match:
+	];
+	const allOps = [
+		// ...mongoOps,
+		// ...regOps,
+		// ...incOps,
+	];
+	let match = {
+		$match: {
 			$and: []
-	try
-		query = JSON.parse(query)
-		allFields = Object.keys(model.schema.paths)
-		for clause in query
-			if !allFields.includes(clause.field) or !allOps.includes(clause.op)
-				continue
-			if mongoOps.includes(clause.op)
-				expr =
+		}
+	};
+	try {
+		query = JSON.parse(query);
+		const allFields = Object.keys(model.schema.paths);
+		for (let clause of Array.from(query)) {
+			var expr;
+			if (!allFields.includes(clause.field) || !allOps.includes(clause.op)) {
+				continue;
+			}
+			if (mongoOps.includes(clause.op)) {
+				expr = {
 					$expr:
-						# [clause.op]:
+						// [clause.op]:
 						[
-							"$#{clause.field}"
+							`$${clause.field}`,
 							clause.value
 						]
-			else if regOps.includes(clause.op)
+				};
+			} else if (regOps.includes(clause.op)) {
 				expr =
-					# [clause.field]:
-					{ $options: 'i' }
-				if clause.op == '$strt'
-					expr[clause.field].$regex = "^#{clause.value}"
-				else if clause.op == '$end'
-					expr[clause.field].$regex = "#{clause.value}$"
-				else if clause.op == '$cont'
-					expr[clause.field].$regex = clause.value
-			else if incOps.includes(clause.op)
-				if clause.op == '$inc'
+					// [clause.field]:
+					{ $options: 'i' };
+				if (clause.op === '$strt') {
+					expr[clause.field].$regex = `^${clause.value}`;
+				} else if (clause.op === '$end') {
+					expr[clause.field].$regex = `${clause.value}$`;
+				} else if (clause.op === '$cont') {
+					expr[clause.field].$regex = clause.value;
+				}
+			} else if (incOps.includes(clause.op)) {
+				if (clause.op === '$inc') {
 					expr =
-						# [clause.field]:
+						// [clause.field]:
 						{
-							$elemMatch:
+							$elemMatch: {
 								$eq: clause.value
-						}
-				else if clause.op == '$ninc'
+							}
+						};
+				} else if (clause.op === '$ninc') {
 					expr =
-						# [clause.field]:
+						// [clause.field]:
 						{
-							$not:
-								$elemMatch:
+							$not: {
+								$elemMatch: {
 									$eq: clause.value
-						}
-				else if clause.op == '$nin'
+								}
+							}
+						};
+				} else if (clause.op === '$nin') {
 					expr =
-						# [clause.field]:
+						// [clause.field]:
 						{
 							$nin: clause.value
-						}
-			match.$match.$and.push(expr)
-		if match.$match.$and.length == 0
+						};
+				}
+			}
+			match.$match.$and.push(expr);
+		}
+		if (match.$match.$and.length === 0) {
 			match =
-				$match: {}
-	catch error
-		match = {}
-	return match
+				{$match: {}};
+		}
+	} catch (error) {
+		match = {};
+	}
+	return match;
+};
 
-#: Exports
+//: Exports
 
-module.exports = parseQuery
+export default parseQuery;

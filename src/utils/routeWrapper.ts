@@ -1,63 +1,68 @@
-models = require('mongoose-auto-api.models')
+import models from 'mongoose-auto-api.models';
 
-#: Route Methods
+//: Route Methods
 
-listMethods = [
-	'set'
-	'push'
+const listMethods = [
+	'set',
+	'push',
 	'push_unique'
-]
+];
 
-normalMethods = [
-	'insert'
-	'update'
-	'delete'
-	'delete_all'
-	'get'
-	'get_all'
-	'find'
-	'sterilize'
+const normalMethods = [
+	'insert',
+	'update',
+	'delete',
+	'delete_all',
+	'get',
+	'get_all',
+	'find',
+	'sterilize',
 	'schema'
-]
+];
 
-routeMethods = [
-	# ...normalMethods,
-	# ...listMethods
-]
+const routeMethods = [
+	// ...normalMethods,
+	// ...listMethods
+];
 
-#: Get Routes
+//: Get Routes
 
-getRoutes = () ->
-	listRoutes = {}
-	normalRoutes = {}
-	for key, model of models
-		if model.listFields.length > 0
-			listRoutes[model.collectionName] = model
-		else
-			normalRoutes[model.collectionName] = model
-	return
-		list: listRoutes
+const getRoutes = function() {
+	const listRoutes = {};
+	const normalRoutes = {};
+	for (let key in models) {
+		const model = models[key];
+		if (model.listFields.length > 0) {
+			listRoutes[model.collectionName] = model;
+		} else {
+			normalRoutes[model.collectionName] = model;
+		}
+	}
+	return{
+		list: listRoutes,
 		normal: normalRoutes
+	};
+};
 
-#: Routes
+//: Routes
 
-routes = getRoutes()
-listRoutes = routes.list
-normalRoutes = routes.normal
-appRoutes = {
-	# ...listRoutes,
-	# ...normalRoutes
-}
+const routes = getRoutes();
+const listRoutes = routes.list;
+const normalRoutes = routes.normal;
+const appRoutes = {
+	// ...listRoutes,
+	// ...normalRoutes
+};
 
-#: Exports
+//: Exports
 
-module.exports = {
+export default {
 	listRoutes,
 	normalRoutes,
 	appRoutes,
 	listMethods,
 	normalMethods,
 	routeMethods,
-}
+};
 
-#::: End Program :::
+//::: End Program :::

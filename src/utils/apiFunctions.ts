@@ -1,259 +1,308 @@
-jwt = require('jsonwebtoken')
-uuid = require('uuidv4').default
-validation = require('mongoose-auto-api.validation')
-models = require('mongoose-auto-api.models')
+/*
+ * decaffeinate suggestions:
+ * DS101: Remove unnecessary use of Array.from
+ * DS102: Remove unnecessary code created because of implicit returns
+ * DS207: Consider shorter variations of null checks
+ * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
+ */
+import jwt from 'jsonwebtoken';
+import { default as uuid } from 'uuidv4';
+import validation from 'mongoose-auto-api.validation';
+import models from 'mongoose-auto-api.models';
 
-userAuth = models.userAuth.model
-secretKey = models.secretKey.model
-AUTH_TOKEN = uuid()
+const userAuth = models.userAuth.model;
+const secretKey = models.secretKey.model;
+const AUTH_TOKEN = uuid();
 
-#::: MISC FUNCTIONS :::
+//::: MISC FUNCTIONS :::
 
-# Omit Properties from Object and get Copy
+// Omit Properties from Object and get Copy
 
-objOmit = (obj, keys) ->
-	clone = Object.assign({}, obj)
-	for key in keys
-		delete obj[key]
-	return clone
+const objOmit = function(obj, keys) {
+	const clone = Object.assign({}, obj);
+	for (let key of Array.from(keys)) {
+		delete obj[key];
+	}
+	return clone;
+};
 
-#: Get Error Object
+//: Get Error Object
 
-errorObj = (error) ->
-	return (
-		message: error.message
-		name: error.name
-		trace: error.stack.split('\n')[1].trim()
-	)
+const errorObj = error => ({
+    message: error.message,
+    name: error.name,
+    trace: error.stack.split('\n')[1].trim()
+});
 
-#: Parse Data Sort
+//: Parse Data Sort
 
-parseDataSort = (query, aggregate=false) ->
-	limit = 0
-	sortOrder = 1
-	sortArgs = null
-	sortField = 'updatedAt'
-	if query.sort_order?
-		sortOrder = Number(query.sort_order)
-	if query.sort_field?
-		sortField = query.sort_field
-	if query.record_limit?
-		limit = Number(query.record_limit)
-	if query.skip?
-		skip = Number(query.skip)
-	if aggregate
+const parseDataSort = function(query, aggregate) {
+	let skip;
+	if (aggregate == null) { aggregate = false; }
+	let limit = 0;
+	let sortOrder = 1;
+	let sortArgs = null;
+	let sortField = 'updatedAt';
+	if (query.sort_order != null) {
+		sortOrder = Number(query.sort_order);
+	}
+	if (query.sort_field != null) {
+		sortField = query.sort_field;
+	}
+	if (query.record_limit != null) {
+		limit = Number(query.record_limit);
+	}
+	if (query.skip != null) {
+		skip = Number(query.skip);
+	}
+	if (aggregate) {
 		sortArgs = [
 			{
 				$sort: {
-					# [sortField]: sortOrder
+					// [sortField]: sortOrder
 				}
 			}
-		]
-		if skip
-			sortArgs.push(
+		];
+		if (skip) {
+			sortArgs.push({
 				$skip: skip
-			)
-		if limit != 0
-			sortArgs.push(
+			});
+		}
+		if (limit !== 0) {
+			sortArgs.push({
 				$limit: limit
-			)
-	else
-		sortArgs =
+			});
+		}
+	} else {
+		sortArgs = {
 			sort: {
-				# [sortField]: sortOrder
+				// [sortField]: sortOrder
 			}
-		if skip
-			sortArgs.skip = skip
-		if limit != 0
-			sortArgs.limit = limit
-	return sortArgs
+		};
+		if (skip) {
+			sortArgs.skip = skip;
+		}
+		if (limit !== 0) {
+			sortArgs.limit = limit;
+		}
+	}
+	return sortArgs;
+};
 
-#::: SCHEMA FUNCTIONS :::
+//::: SCHEMA FUNCTIONS :::
 
-# Get Schema Info
+// Get Schema Info
 
-schemaInfo = (model) ->
-	return
-		schema: Object.keys(model.model.schema.paths)
-		primary_key: model.primaryKey
-		list_fields: model.listFields
-		encrypt_fields: model.encryptFields
-		encode_fields: model.encodeFields
-		subdoc_fields: model.subDocFields
+const schemaInfo = model => ({
+    schema: Object.keys(model.model.schema.paths),
+    primary_key: model.primaryKey,
+    list_fields: model.listFields,
+    encrypt_fields: model.encryptFields,
+    encode_fields: model.encodeFields,
+    subdoc_fields: model.subDocFields
+});
 
-# Get Schema Info Async
+// Get Schema Info Async
 
-schemaAsync = (model) ->
-	Promise.resolve(schemaInfo(model))
+const schemaAsync = model => Promise.resolve(schemaInfo(model));
 
-# Update Query
+// Update Query
 
-updateQuery = (req, primaryKey) ->
-	updateQuery = objOmit(req.query, [ primaryKey ])
-	if updateQuery.update_primary?
-		updateQuery[primaryKey] = updateQuery.update_primary
-		updateQuery.update_primary = null
-	return updateQuery
+var updateQuery = function(req, primaryKey) {
+	updateQuery = objOmit(req.query, [ primaryKey ]);
+	if (updateQuery.update_primary != null) {
+		updateQuery[primaryKey] = updateQuery.update_primary;
+		updateQuery.update_primary = null;
+	}
+	return updateQuery;
+};
 
-# Allowed Password Check
+// Allowed Password Check
 
-allowedPassword = (req) ->
-	userVal = validation.userVal(
+const allowedPassword = function(req) {
+	const userVal = validation.userVal(
 		req.query.username,
 		'username'
-	)
-	passVal = validation.passVal(
+	);
+	const passVal = validation.passVal(
 		req.query.password,
 		'password'
-	)
-	error = validation.joinValidations([userVal, passVal])
-	if !error.valid
-		return
-			status: 'error'
+	);
+	const error = validation.joinValidations([userVal, passVal]);
+	if (!error.valid) {
+		return{
+			status: 'error',
 			response: error
-	else
-		return true
+		};
+	} else {
+		return true;
+	}
+};
 
-# Allowed Secret Key
+// Allowed Secret Key
 
-allowedSecretKey = (req) ->
-	error = validation.passVal(
+const allowedSecretKey = function(req) {
+	const error = validation.passVal(
 		req.query.key,
 		'key'
-	)
-	if !error.valid
-		return
-			status: 'error'
+	);
+	if (!error.valid) {
+		return{
+			status: 'error',
 			response: error
-	else
-		return true
+		};
+	} else {
+		return true;
+	}
+};
 
-#::: RESPONSE FUNCTIONS :::
+//::: RESPONSE FUNCTIONS :::
 
-# Response/Error JSON
+// Response/Error JSON
 
-responseFormat = (method, args, req, res, spreadArgs=true) ->
-	try
-		if spreadArgs
-			response = await method(
-				# ...args
+const responseFormat = function(method, args, req, res, spreadArgs) {
+	let response;
+	if (spreadArgs == null) { spreadArgs = true; }
+	try {
+		if (spreadArgs) {
+			response = await(method(
+				// ...args
 			)
-		else
-			response = await method(args)
-		retJson =
-			status: 'ok'
-			response: response
-		if res.locals.refresh_token?
-			retJson.refresh_token = res.locals.refresh_token
-		return res.json(retJson)
-	catch error
-		errJson =
-			status: 'error'
+			);
+		} else {
+			response = await(method(args));
+		}
+		const retJson = {
+			status: 'ok',
+			response
+		};
+		if (res.locals.refresh_token != null) {
+			retJson.refresh_token = res.locals.refresh_token;
+		}
+		return res.json(retJson);
+	} catch (error) {
+		const errJson = {
+			status: 'error',
 			response: errorObj(error)
-		if res.locals.refresh_token?
-			errJson.refresh_token = res.locals.refresh_token
-		return res.status(500).json(errJson)
+		};
+		if (res.locals.refresh_token != null) {
+			errJson.refresh_token = res.locals.refresh_token;
+		}
+		return res.status(500).json(errJson);
+	}
+};
 
-# Incorrect Secret Key JSON
+// Incorrect Secret Key JSON
 
-incorrectSecretKey = (res) ->
-	res.status(401).json
-		status: 'error'
-		response:
-			message: 'Incorrect secret key.'
-			codes: [ 'SECRET_KEY_INCORRECT' ]
+const incorrectSecretKey = res => res.status(401).json({
+    status: 'error',
+    response: {
+        message: 'Incorrect secret key.',
+        codes: [ 'SECRET_KEY_INCORRECT' ]
+    }});
 
-# Incorrect Username or Password JSON
+// Incorrect Username or Password JSON
 
-incorrectUserOrPass = (res) ->
-	res.status(401).json
-		status: 'error'
-		response:
-			message: 'Incorrect username or password.'
-			codes: [ 'USER_OR_PASSWORD_INCORRECT' ]
+const incorrectUserOrPass = res => res.status(401).json({
+    status: 'error',
+    response: {
+        message: 'Incorrect username or password.',
+        codes: [ 'USER_OR_PASSWORD_INCORRECT' ]
+    }});
 
-# User Not Found JSON
+// User Not Found JSON
 
-userNotFound = (res) ->
-	res.status(401).json
-		status: 'error'
-		response:
-			message: 'User does not exist.'
-			codes: [ 'USER_NOT_FOUND' ]
+const userNotFound = res => res.status(401).json({
+    status: 'error',
+    response: {
+        message: 'User does not exist.',
+        codes: [ 'USER_NOT_FOUND' ]
+    }});
 
-# No Current Password JSON
+// No Current Password JSON
 
-noCurrentPass = (res) ->
-	res.status(401).json
-		status: 'error'
-		response:
-			message: 'Must include current password.'
-			codes: [ 'PASSWORD_NO_CURRENT' ]
+const noCurrentPass = res => res.status(401).json({
+    status: 'error',
+    response: {
+        message: 'Must include current password.',
+        codes: [ 'PASSWORD_NO_CURRENT' ]
+    }});
 
-#::: TOKEN FUNCTIONS :::
+//::: TOKEN FUNCTIONS :::
 
-# Sign JSON Web Token (expires in 7 days)
+// Sign JSON Web Token (expires in 7 days)
 
-signToken = (user) ->
-	expires_in = 24 * 60 * 60 * 7
-	access_token = jwt.sign(
+const signToken = function(user) {
+	const expires_in = 24 * 60 * 60 * 7;
+	const access_token = jwt.sign(
 		{
-			username: user.username
+			username: user.username,
 			uid: user.uid
 		},
 		AUTH_TOKEN,
-		expiresIn: expires_in
-	)
-	return
-		username: user.username
-		uid: user.uid
-		access_token: access_token
-		expires_in: expires_in
+		{expiresIn: expires_in}
+	);
+	return {
+		username: user.username,
+		uid: user.uid,
+		access_token,
+		expires_in
+	};
+};
 
-# Verify JSON Web Token
+// Verify JSON Web Token
 
-verifyToken = (req, res, next) ->
-	if req.params.path?
-		if req.params.path == 'update_secret_key'
-			getAll = await secretKey.find({})
-			if getAll.length <= 0
-				return next()
-		else if req.params.path == 'signup'
-			getAll = await userAuth.find({})
-			if getAll.length <= 0
-				return next()
-	token = req.query.auth_token or req.headers['x-access-token'] or req.headers['authorization']
-	if !token
-		return res.status(401).json(
-			status: 'error'
-			response:
+const verifyToken = function(req, res, next) {
+	if (req.params.path != null) {
+		let getAll;
+		if (req.params.path === 'update_secret_key') {
+			getAll = await(secretKey.find({}));
+			if (getAll.length <= 0) {
+				return next();
+			}
+		} else if (req.params.path === 'signup') {
+			getAll = await(userAuth.find({}));
+			if (getAll.length <= 0) {
+				return next();
+			}
+		}
+	}
+	const token = req.query.auth_token || req.headers['x-access-token'] || req.headers['authorization'];
+	if (!token) {
+		return res.status(401).json({
+			status: 'error',
+			response: {
 				message: 'No token provided.'
-		)
-	else
+			}
+		});
+	} else {
 		jwt.verify(
 			token,
 			AUTH_TOKEN,
-			(error, decoded) ->
-				currentTime = Math.round(Date.now() / 1000)
-				expiresIn = 24 * 60 * 60
-				oneHour = 60 * 60
-				if error
-					return res.status(401).json(
-						status: 'error'
-						response:
+			function(error, decoded) {
+				const currentTime = Math.round(Date.now() / 1000);
+				const expiresIn = 24 * 60 * 60;
+				const oneHour = 60 * 60;
+				if (error) {
+					return res.status(401).json({
+						status: 'error',
+						response: {
 							message: 'Invalid token.'
-					)
-				else if currentTime < decoded.exp and currentTime + expiresIn > decoded.exp + oneHour
-					res.locals.refresh_token = signToken(decoded)
-					return next()
-				else
-					return next()
-		)
-	return
+						}
+					});
+				} else if ((currentTime < decoded.exp) && ((currentTime + expiresIn) > (decoded.exp + oneHour))) {
+					res.locals.refresh_token = signToken(decoded);
+					return next();
+				} else {
+					return next();
+				}
+		});
+	}
+};
 
-#::: EXPORTS :::
+//::: EXPORTS :::
 
-module.exports = {
+export default {
 	objOmit,
 	errorObj,
 	parseDataSort,
@@ -268,6 +317,6 @@ module.exports = {
 	noCurrentPass,
 	signToken,
 	verifyToken,
-}
+};
 
-#::: End Program :::
+//::: End Program :::

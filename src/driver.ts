@@ -1,2 +1,2 @@
-rest = require('./')
-rest.start()
+import rest from './';
+rest.start();

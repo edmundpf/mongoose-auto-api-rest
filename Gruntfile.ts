@@ -1,44 +1,60 @@
-module.exports = (grunt) ->
-	grunt.loadNpmTasks('grunt-contrib-coffee')
-	grunt.loadNpmTasks('grunt-contrib-watch')
-	grunt.loadNpmTasks('grunt-contrib-copy')
-	grunt.loadNpmTasks('grunt-contrib-clean')
+/*
+ * decaffeinate suggestions:
+ * DS102: Remove unnecessary code created because of implicit returns
+ * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
+ */
+export default function(grunt) {
+	grunt.loadNpmTasks('grunt-contrib-coffee');
+	grunt.loadNpmTasks('grunt-contrib-watch');
+	grunt.loadNpmTasks('grunt-contrib-copy');
+	grunt.loadNpmTasks('grunt-contrib-clean');
 	grunt.registerTask('sync', [
-		'clean:all'
-		'copy:json'
+		'clean:all',
+		'copy:json',
 		'coffee:compile'
-	])
+	]);
 
-	grunt.initConfig
-		watch:
-			coffee:
-				files: 'src/**/*.coffee'
+	return grunt.initConfig({
+		watch: {
+			coffee: {
+				files: 'src/**/*.coffee',
 				tasks: ['coffee:compile']
-			json:
-				files: 'src/**/*.json'
+			},
+			json: {
+				files: 'src/**/*.json',
 				tasks: ['copy:json']
+			}
+		},
 
-		clean:
+		clean: {
 			all: ['js/*']
+		},
 
-		copy:
-			json:
+		copy: {
+			json: {
 				files: [
 					{
-						expand: true
-						cwd: 'src'
-						src: '**/*.json'
+						expand: true,
+						cwd: 'src',
+						src: '**/*.json',
 						dest: 'js/'
 					}
 				]
+			}
+		},
 
-		coffee:
-			compile:
-				options:
+		coffee: {
+			compile: {
+				options: {
 					bare: true
-				expand: true
-				flatten: false
-				cwd: 'src'
-				src: '**/*.coffee'
-				dest: 'js/'
+				},
+				expand: true,
+				flatten: false,
+				cwd: 'src',
+				src: '**/*.coffee',
+				dest: 'js/',
 				ext: '.js'
+			}
+		}
+	});
+};
