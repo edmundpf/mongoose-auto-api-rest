@@ -1,13 +1,6 @@
-// TODO: This file was created by bulk-decaffeinate.
-// Sanity-check the conversion and remove this comment.
-/*
- * decaffeinate suggestions:
- * DS101: Remove unnecessary use of Array.from
- * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
- */
 //: Parse Query
 
-const parseQuery = function(model, query) {
+const parseQuery = (model: any, query: string) => {
 	const mongoOps = [
 		'$eq',
 		'$ne',
@@ -28,36 +21,37 @@ const parseQuery = function(model, query) {
 		'$ninc'
 	];
 	const allOps = [
-		// ...mongoOps,
-		// ...regOps,
-		// ...incOps,
+		...mongoOps,
+		...regOps,
+		...incOps,
 	];
-	let match = {
+	let match: any = {
 		$match: {
 			$and: []
 		}
 	};
 	try {
-		query = JSON.parse(query);
+		const querySterile: Array<any> = JSON.parse(query);
 		const allFields = Object.keys(model.schema.paths);
-		for (let clause of Array.from(query)) {
-			var expr;
+		for (let clauseIndex in querySterile) {
+			let expr;
+			const clause = querySterile[clauseIndex]
 			if (!allFields.includes(clause.field) || !allOps.includes(clause.op)) {
 				continue;
 			}
 			if (mongoOps.includes(clause.op)) {
 				expr = {
-					$expr:
-						// [clause.op]:
-						[
+					$expr: {
+						[clause.op]: [
 							`$${clause.field}`,
 							clause.value
 						]
+					}
 				};
 			} else if (regOps.includes(clause.op)) {
-				expr =
-					// [clause.field]:
-					{ $options: 'i' };
+				expr = {
+					[clause.field]: { $options: 'i' }
+				}
 				if (clause.op === '$strt') {
 					expr[clause.field].$regex = `^${clause.value}`;
 				} else if (clause.op === '$end') {
@@ -67,29 +61,32 @@ const parseQuery = function(model, query) {
 				}
 			} else if (incOps.includes(clause.op)) {
 				if (clause.op === '$inc') {
-					expr =
-						// [clause.field]:
+					expr = {
+						[clause.field]:
 						{
 							$elemMatch: {
 								$eq: clause.value
 							}
-						};
+						}
+					}
 				} else if (clause.op === '$ninc') {
-					expr =
-						// [clause.field]:
+					expr = {
+						[clause.field]:
 						{
 							$not: {
 								$elemMatch: {
 									$eq: clause.value
 								}
 							}
-						};
+						}
+					}
 				} else if (clause.op === '$nin') {
-					expr =
-						// [clause.field]:
+					expr = {
+						[clause.field]:
 						{
 							$nin: clause.value
-						};
+						}
+					}
 				}
 			}
 			match.$match.$and.push(expr);

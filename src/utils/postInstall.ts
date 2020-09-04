@@ -1,6 +1,3 @@
-// TODO: This file was created by bulk-decaffeinate.
-// Sanity-check the conversion and remove this comment.
-let error;
 import fs from 'fs';
 import defaultConfig from '../data/defaultConfig.json';
 
@@ -9,8 +6,7 @@ try {
 		fs.mkdirSync('../../models');
 		console.log('Created models directory.');
 	}
-} catch (error1) {
-	error = error1;
+} catch (error) {
 	console.log('Could not create models directory.');
 }
 
@@ -22,7 +18,6 @@ try {
 		);
 		console.log('Created config file.');
 	}
-} catch (error2) {
-	error = error2;
+} catch (error) {
 	console.log('Could not create config file.');
 }

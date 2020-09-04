@@ -1,4 +1,4 @@
-module.exports = {
+export default {
 	outputFileExtension: 'ts',
 	useJSModules: true,
 	jscodeshiftScripts: ['./transform/arrow-functions.js'],
@@ -6,4 +6,4 @@ module.exports = {
 		searchPath: './src',
 		absoluteImportPaths: ['./src'],
 	},
-}
+};

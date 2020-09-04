@@ -1,4 +1,4 @@
-module.exports = (file, api, options) => {
+export default (file, api, options) => {
 	const j = api.jscodeshift
 
 	const printOptions = options.printOptions || { quote: 'single' }
@@ -131,4 +131,4 @@ module.exports = (file, api, options) => {
 	return replacedBoundFunctions || replacedCallbacks
 		? root.toSource(printOptions)
 		: null
-}
+};

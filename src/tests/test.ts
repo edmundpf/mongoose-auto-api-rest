@@ -7,13 +7,18 @@
  * DS207: Consider shorter variations of null checks
  * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
  */
-let port, server, url;
 import a from 'axios';
 import fs from 'fs';
 import p from 'print-tools-js';
 import { assert } from 'chai';
-const should = require('chai').should();
-let api = (server = (port = (url = null)));
+require('chai').should();
+
+// Setup
+
+let api, port, server, url;
+api = server = port = url = null
+
+// Constants
 
 const USERNAME = 'user@email.com';
 const PASSWORD1 = 'testPass1!';
@@ -21,8 +26,9 @@ const PASSWORD2 = 'testPass2!';
 const SECRET_KEY1 = 'secretKeyTest1!';
 const SECRET_KEY2 = 'secretKeyTest2!';
 let ACCESS_TOKEN = '';
-
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
+
+// Sample Models
 
 const customerModel = `\
 {
@@ -111,7 +117,7 @@ const models = {
 
 //: Start Server Hook
 
-before(function() {
+before(async function() {
 	this.timeout(10000);
 	if (!fs.existsSync('./models')) {
 		fs.mkdirSync('./models');
@@ -139,7 +145,7 @@ before(function() {
 
 //: Request
 
-const request = function(endpoint, func, log) {
+const request = async (endpoint, func, log) => {
 	try {
 		const res = await(func(`${url}${endpoint}`));
 		if (log) {
@@ -151,7 +157,7 @@ const request = function(endpoint, func, log) {
 			);
 		}
 		return {
-			// ...res.data,
+			...res.data,
 			statusCode: res.status
 		};
 	} catch (error) {
@@ -164,7 +170,7 @@ const request = function(endpoint, func, log) {
 			);
 		}
 		return {
-			// ...error.response.data,
+			...error.response.data,
 			statusCode: error.response.status
 		};
 	}
@@ -172,28 +178,28 @@ const request = function(endpoint, func, log) {
 
 //: Get Request
 
-const get = function(endpoint, log) {
+const get = async (endpoint, log) => {
 	if (log == null) { log = true; }
 	return await(request(endpoint, a.get.bind(a), log));
 };
 
 //: Post Request
 
-const post = function(endpoint, log) {
+const post = async (endpoint, log) => {
 	if (log == null) { log = true; }
 	return await(request(endpoint, a.post.bind(a), log));
 };
 
 //: Delete Request
 
-const remove = function(endpoint, log) {
+const remove = async (endpoint, log) => {
 	if (log == null) { log = true; }
 	return await(request(endpoint, a.delete.bind(a), log));
 };
 
 //: Error Response Assert
 
-const errorAssert = function(res, msg, args) {
+const errorAssert = (res, msg, args) => {
 	let extArgs = true;
 	if (args != null) {
 		for (let key in args) {
@@ -215,9 +221,9 @@ const errorAssert = function(res, msg, args) {
 
 //: Error Response Code Assert
 
-const errorCodeAssert = function(res, codes) {
+const errorCodeAssert = (res, codes) => {
 	let hasCodes = true;
-	for (let code of Array.from(codes)) {
+	for (let code of codes) {
 		if ((res.response.codes == null) || !res.response.codes.includes(code)) {
 			hasCodes = false;
 			break;
@@ -235,7 +241,7 @@ const errorCodeAssert = function(res, codes) {
 
 const errorExistsAssert = function(res, fields) {
 	let hasFields = false;
-	for (let field of Array.from(fields)) {
+	for (let field of fields) {
 		if (res.response[field] != null) {
 			hasFields = true;
 			break;
@@ -275,7 +281,7 @@ const okayAssert = function(res, msg, args) {
 
 const okayExistsAssert = function(res, fields) {
 	let hasFields = true;
-	for (let field of Array.from(fields)) {
+	for (let field of fields) {
 		if ((res.response[field] == null)) {
 			hasFields = false;
 			break;
@@ -1099,7 +1105,6 @@ describe('API Methods', () => {
 
 after(done => {
 	for (let key in models) {
-		const val = models[key];
 		if (fs.existsSync(key)) {
 			fs.unlinkSync(key);
 		}

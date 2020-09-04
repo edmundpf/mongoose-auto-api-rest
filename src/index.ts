@@ -1,18 +1,7 @@
-// TODO: This file was created by bulk-decaffeinate.
-// Sanity-check the conversion and remove this comment.
-/*
- * decaffeinate suggestions:
- * DS101: Remove unnecessary use of Array.from
- * DS102: Remove unnecessary code created because of implicit returns
- * DS207: Consider shorter variations of null checks
- * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
- */
-let serverConfig;
 import fs from 'fs';
 import path from 'path';
 import https from 'https';
 import cors from 'cors';
-import assert from 'assert';
 import bcrypt from 'bcrypt';
 import express from 'express';
 import p from 'print-tools-js';
@@ -21,11 +10,9 @@ import publicIp from 'public-ip';
 import compression from 'compression';
 import models from 'mongoose-auto-api.models';
 import { listRoutes } from './utils/routeWrapper';
-import { normalRoutes } from './utils/routeWrapper';
 import { appRoutes } from './utils/routeWrapper';
 import { listMethods } from './utils/routeWrapper';
 import { normalMethods } from './utils/routeWrapper';
-import { routeMethods } from './utils/routeWrapper';
 import { objOmit } from './utils/apiFunctions';
 import { errorObj } from './utils/apiFunctions';
 import { parseDataSort } from './utils/apiFunctions';
@@ -42,31 +29,27 @@ import { signToken } from './utils/apiFunctions';
 import { verifyToken } from './utils/apiFunctions';
 import parseQuery from './utils/parseQuery';
 
-try {
-	serverConfig = require('../../../appConfig.json');
-} catch (error1) {
-	const error = error1;
-	serverConfig = require('./data/defaultConfig.json');
-	p.warning('Could not load app config file, using default configuration.');
-}
+//: Setup
 
-
-const serverPort = process.env.NODE_ENV === 'production' ? process.env.PORT || serverConfig.serverPort : serverConfig.serverPort + 10;
-const corsPort = process.env.NODE_ENV === 'production' ? process.env.WEB_PORT || serverConfig.webPort : serverConfig.webPort + 10;
+const config = fs.existsSync('../../../appConfig.json')
+	? require('../../../appConfig.json')
+	: require('./data/defaultConfig.json')
+const serverPort = process.env.NODE_ENV === 'production' ? process.env.PORT || config.serverPort : config.serverPort + 10;
+const corsPort = process.env.NODE_ENV === 'production' ? process.env.WEB_PORT || config.webPort : config.webPort + 10;
 const {
     mongoosePort
-} = serverConfig;
+} = config;
 const {
     databaseName
-} = serverConfig;
+} = config;
 const userAuth = models.userAuth.model;
 const secretKey = models.secretKey.model;
-let serverAddress = null;
+let serverAddress: any = null
 const app = express();
 
 //: MongoDB Config
 
-const mongooseConnect = function() {
+const mongooseConnect = async () => {
 	try {
 		return await(mongoose.connect(`mongodb://localhost:${mongoosePort}/${databaseName}`, {
 			useNewUrlParser: true,
@@ -96,7 +79,7 @@ const serverStarted = () => {
 
 //: Init Server
 
-const init = function() {
+const init = async () => {
 
 	try {
 		serverAddress = await(publicIp.v4());
@@ -108,11 +91,11 @@ const init = function() {
 
 //: Start Server
 
-const start = function() {
+const startServer = () => {
 
-	let keyPath = serverConfig.sslKey ? serverConfig.sslKey : `/etc/letsencrypt/live/${serverConfig.serverAddress}/privkey.pem`;
-	let certPath = serverConfig.sslCert ? serverConfig.sslCert : `/etc/letsencrypt/live/${serverConfig.serverAddress}/cert.pem`;
-	let chainPath = serverConfig.sslChain ? serverConfig.sslChain : `/etc/letsencrypt/live/${serverConfig.serverAddress}/chain.pem`;
+	let keyPath = config.sslKey ? config.sslKey : `/etc/letsencrypt/live/${config.serverAddress}/privkey.pem`;
+	let certPath = config.sslCert ? config.sslCert : `/etc/letsencrypt/live/${config.serverAddress}/cert.pem`;
+	let chainPath = config.sslChain ? config.sslChain : `/etc/letsencrypt/live/${config.serverAddress}/chain.pem`;
 	keyPath = path.resolve(keyPath);
 	certPath = path.resolve(certPath);
 	chainPath = path.resolve(chainPath);
@@ -123,7 +106,7 @@ const start = function() {
 
 	app.use(compression());
 
-	if ((serverConfig.serverAddress !== 'localhost') && keyExists && certExists && chainExists) {
+	if ((config.serverAddress !== 'localhost') && keyExists && certExists && chainExists) {
 
 		app.use(
 			cors({
@@ -132,8 +115,8 @@ const start = function() {
 					`https://localhost:${corsPort}`,
 					`http://${serverAddress}:${corsPort}`,
 					`https://${serverAddress}:${corsPort}`,
-					`http://${serverConfig.serverAddress}:${corsPort}`,
-					`https://${serverConfig.serverAddress}:${corsPort}`
+					`http://${config.serverAddress}:${corsPort}`,
+					`https://${config.serverAddress}:${corsPort}`
 				],
 				exposedHeaders: [ 'X-Access-Token' ]
 			})
@@ -164,7 +147,7 @@ const start = function() {
 	//: All Routes
 
 	app.all(`/:path(${Object.keys(appRoutes).join('|')})/:method(${normalMethods.join('|')})`,
-		verifyToken, (req, res) => {
+		verifyToken, async (req, res) => {
 
 			let field, sortArgs;
 			const modelInfo = appRoutes[req.params.path];
@@ -178,7 +161,7 @@ const start = function() {
 			//: Format Sub-Document fields
 
 			if (['update', 'insert'].includes(req.params.method)) {
-				for (field of Array.from(modelInfo.subDocFields)) {
+				for (field in modelInfo.subDocFields) {
 					if (typeof req.query[field] === 'string') {
 						req.query[field] = JSON.parse(req.query[field]);
 					}
@@ -204,7 +187,7 @@ const start = function() {
 					model.updateOne.bind(model),
 					[
 						{
-							// [primaryKey]: req.query[primaryKey]
+							[primaryKey]: req.query[primaryKey]
 						},
 						updateQuery(req, primaryKey)
 					],
@@ -220,7 +203,7 @@ const start = function() {
 					model.deleteOne.bind(model),
 					[
 						{
-							// [primaryKey]: req.query[primaryKey]
+							[primaryKey]: req.query[primaryKey]
 						}
 					],
 					req,
@@ -246,7 +229,7 @@ const start = function() {
 					model.find.bind(model),
 					[
 						{
-							// [primaryKey]: req.query[primaryKey]
+							[primaryKey]: req.query[primaryKey]
 						}
 					],
 					req,
@@ -300,14 +283,14 @@ const start = function() {
 							parseQuery(model, req.query.where),
 							lookup,
 							unwind,
-							// ...sortArgs,
+							...sortArgs,
 						];
 					}
 
 				} else {
 					aggArgs = [
 						parseQuery(model, req.query.where),
-						// ...sortArgs,
+						...sortArgs,
 					];
 				}
 
@@ -347,14 +330,15 @@ const start = function() {
 					'__v'
 				];
 				const allFields = [
-					// ...mongoFields
-					// ...modelInfo.allFields
+					...mongoFields,
+					...modelInfo.allFields
 				];
 				const {
                     listFields
                 } = modelInfo;
-				const records = await(model.find({}).lean());
-				for (let record of Array.from(records)) {
+				const records: Array<any> = await(model.find({}).lean());
+				for (let recIndex in records) {
+					const record = records[recIndex]
 					for (let key in record) {
 						if (!allFields.includes(key) && !Object.keys(unsetDict).includes(key)) {
 							unsetDict[key] = 1;
@@ -377,7 +361,7 @@ const start = function() {
 					[
 						{},
 						{
-							// ...normalDict,
+							...normalDict,
 							$set: setDict,
 							$unset: unsetDict,
 						},
@@ -395,7 +379,7 @@ const start = function() {
 	//: List Routes
 
 	app.all(`/:path(${Object.keys(listRoutes).join('|')})/:method(${listMethods.join('|')})`,
-		verifyToken, (req, res) => {
+		verifyToken, async (req, res) => {
 
 			const {
                 model
@@ -428,7 +412,7 @@ const start = function() {
 						model.updateOne.bind(model),
 						[
 							{
-								// [primaryKey]: req.query[primaryKey]
+								[primaryKey]: req.query[primaryKey]
 							},
 							{
 								$push: updateDict
@@ -446,7 +430,7 @@ const start = function() {
 						model.updateOne.bind(model),
 						[
 							{
-								// [primaryKey]: req.query[primaryKey]
+								[primaryKey]: req.query[primaryKey]
 							},
 							{
 								$addToSet: updateDict
@@ -464,7 +448,7 @@ const start = function() {
 						model.updateOne.bind(model),
 						[
 							{
-								// [primaryKey]: req.query[primaryKey]
+								[primaryKey]: req.query[primaryKey]
 							},
 							{
 								$set: updateDict
@@ -479,7 +463,7 @@ const start = function() {
 
 	//: Login
 
-	app.all('/login', (req, res) => {
+	app.all('/login', async (req, res) => {
 		try {
 			const user = await(userAuth.findOne({
 				username: req.query.username
@@ -513,7 +497,7 @@ const start = function() {
 
 	//: Edit Secret Key
 
-	app.all('/:path(update_secret_key)', verifyToken, (req, res) => {
+	app.all('/:path(update_secret_key)', verifyToken, async (req, res) => {
 		let response;
 		try {
 
@@ -549,7 +533,7 @@ const start = function() {
 
 	//: Sign Up
 
-	app.all('/:path(signup)', verifyToken, (req, res) => {
+	app.all('/:path(signup)', verifyToken, async (req, res) => {
 		let response;
 		try {
 			if (req.query.secret_key != null) {
@@ -604,7 +588,7 @@ const start = function() {
 
 	//: Update Password
 
-	app.all('/update_password', (req, res) => {
+	app.all('/update_password', async (req, res) => {
 
 		try {
 			const user = await(userAuth.findOne({
@@ -682,16 +666,16 @@ const start = function() {
 
 //: Main
 
-const main = function() {
+const start = async () => {
 	await(init());
-	return start();
+	return startServer();
 };
 
 //: Exports
 
 export default {
 	app,
-	start: main,
+	start,
 	models,
-	config: serverConfig
+	config
 };

@@ -1,5 +1,3 @@
-// TODO: This file was created by bulk-decaffeinate.
-// Sanity-check the conversion and remove this comment.
 import models from 'mongoose-auto-api.models';
 
 //: Route Methods
@@ -23,13 +21,13 @@ const normalMethods = [
 ];
 
 const routeMethods = [
-	// ...normalMethods,
-	// ...listMethods
+	...normalMethods,
+	...listMethods
 ];
 
 //: Get Routes
 
-const getRoutes = function() {
+const getRoutes = () => {
 	const listRoutes = {};
 	const normalRoutes = {};
 	for (let key in models) {
@@ -52,13 +50,13 @@ const routes = getRoutes();
 const listRoutes = routes.list;
 const normalRoutes = routes.normal;
 const appRoutes = {
-	// ...listRoutes,
-	// ...normalRoutes
+	...listRoutes,
+	...normalRoutes
 };
 
 //: Exports
 
-export default {
+export {
 	listRoutes,
 	normalRoutes,
 	appRoutes,
