@@ -1,58 +1,105 @@
 {
-	"name": "mongoose-auto-api.rest",
-	"version": "1.0.5",
-	"description": "Automatic Mongoose REST API - Rest API Module",
-	"main": "./js/index.js",
-	"files": [
-		"/js"
-	],
-	"scripts": {
-		"start": "node ./js/driver",
-		"test": "./node_modules/.bin/mocha js/tests",
-		"compile": "grunt sync",
-		"postinstall": "node ./js/utils/postInstall"
-	},
-	"author": "Edmund Pfeil {edmundpf@buffalo.edu}",
-	"homepage": "https://github.com/edmundpf/mongoose-auto-api-rest",
-	"repository": {
-		"type": "git",
-		"url": "https://github.com/edmundpf/mongoose-auto-api-rest"
-	},
-	"keywords": [
-		"mongoose",
-		"schema",
-		"models",
-		"api",
-		"rest",
-		"restful",
-		"auto",
-		"automatic",
-		"bootstrap",
-		"starter",
-		"template"
-	],
-	"license": "MIT",
-	"dependencies": {
-		"bcrypt": "^3.0.6",
-		"compression": "^1.7.4",
-		"cors": "^2.8.5",
-		"express": "^4.17.1",
-		"jsonwebtoken": "^8.5.1",
-		"mongoose": "^5.6.11",
-		"mongoose-auto-api.models": "^1.0.4",
-		"mongoose-auto-api.validation": "^1.0.0",
-		"print-tools-js": "^1.1.0",
-		"public-ip": "^3.2.0",
-		"uuidv4": "^5.0.0"
-	},
-	"devDependencies": {
-		"axios": "^0.19.0",
-		"chai": "*",
-		"grunt": "*",
-		"grunt-contrib-clean": "*",
-		"grunt-contrib-coffee": "*",
-		"grunt-contrib-copy": "*",
-		"grunt-contrib-watch": "*",
-		"mocha": "*"
-	}
+  "name": "mongoose-auto-api.rest",
+  "version": "1.0.5",
+  "description": "Automatic Mongoose REST API - Rest API Module",
+  "main": "./js/index.js",
+  "files": [
+    "/js"
+  ],
+  "scripts": {
+    "compile": "grunt sync",
+    "check": "tsc --noEmit",
+    "watch": "tsc --watch",
+    "decaf-check": "bulk-decaffeinate check",
+    "decaf-convert": "bulk-decaffeinate convert",
+    "decaf-modernize": "bulk-decaffeinate modernize-js",
+    "decaf-transform": "jscodeshift -t ./transform/arrow-functions.js src/**/*.ts --parser=ts",
+    "decaf-clean": "bulk-decaffeinate clean; rm -r bulk-decaffeinate.config.js decaffeinate-* transform",
+    "lint": "npx eslint .",
+    "lint-fix": "npx eslint --fix .",
+    "format": "npx prettier --write .",
+    "dev-checkout": "git checkout dev",
+    "commit": "npm run dev-checkout && tsc && npm run test && git add . && git commit -m",
+    "bump-patch": "npm run dev-checkout && npm version patch",
+    "bump-minor": "npm run dev-checkout && npm version minor",
+    "bump-major": "npm run dev-checkout && npm version major",
+    "release": "npm run dev-checkout && git push origin dev && git checkout master && git merge dev && git push origin master && git push --tags && git checkout dev",
+    "release-patch": "npm run bump-patch && npm run doc && npm run release",
+    "release-minor": "npm run bump-minor && npm run doc && npm run release",
+    "release-major": "npm run bump-major && npm run doc && npm run release",
+    "doc": "npx typedoc && git add . && git commit -m 'Updated Docs'",
+    "start": "node ./js/driver",
+    "test": "./node_modules/.bin/mocha js/tests",
+    "postinstall": "node ./js/utils/postInstall"
+  },
+  "author": "Edmund Pfeil {edmundpf@buffalo.edu}",
+  "homepage": "https://github.com/edmundpf/mongoose-auto-api-rest",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/edmundpf/mongoose-auto-api-rest"
+  },
+  "keywords": [
+    "mongoose",
+    "schema",
+    "models",
+    "api",
+    "rest",
+    "restful",
+    "auto",
+    "automatic",
+    "bootstrap",
+    "starter",
+    "template"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "bcrypt": "^3.0.6",
+    "compression": "^1.7.4",
+    "cors": "^2.8.5",
+    "express": "^4.17.1",
+    "jsonwebtoken": "^8.5.1",
+    "mongoose": "^5.6.11",
+    "mongoose-auto-api.models": "^1.0.4",
+    "mongoose-auto-api.validation": "^1.0.0",
+    "print-tools-js": "^1.1.0",
+    "public-ip": "^3.2.0",
+    "uuidv4": "^5.0.0"
+  },
+  "devDependencies": {
+    "@types/chai": "*",
+    "@types/mocha": "*",
+    "@types/node": "*",
+    "@typescript-eslint/eslint-plugin": "*",
+    "@typescript-eslint/parser": "*",
+    "chai": "*",
+    "eslint": "*",
+    "eslint-config-prettier": "*",
+    "eslint-plugin-mocha": "*",
+    "husky": "*",
+    "lint-staged": "*",
+    "mocha": "*",
+    "prettier": "*",
+    "typedoc": "*",
+    "typedoc-plugin-markdown": "*",
+    "typescript": "*",
+    "axios": "^0.19.0",
+    "grunt": "*",
+    "grunt-contrib-clean": "*",
+    "grunt-contrib-coffee": "*",
+    "grunt-contrib-copy": "*",
+    "grunt-contrib-watch": "*"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "npx lint-staged"
+    }
+  },
+  "lint-staged": {
+    "*.@(js|ts|jsx|tsx)": [
+      "npm run lint"
+    ],
+    "*": [
+      "npm run format"
+    ]
+  }
 }

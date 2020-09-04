@@ -44,8 +44,9 @@ parseDataSort = (query, aggregate=false) ->
 	if aggregate
 		sortArgs = [
 			{
-				$sort:
-					[sortField]: sortOrder
+				$sort: {
+					# [sortField]: sortOrder
+				}
 			}
 		]
 		if skip
@@ -58,8 +59,9 @@ parseDataSort = (query, aggregate=false) ->
 			)
 	else
 		sortArgs =
-			sort:
-				[sortField]: sortOrder
+			sort: {
+				# [sortField]: sortOrder
+			}
 		if skip
 			sortArgs.skip = skip
 		if limit != 0
@@ -133,7 +135,9 @@ allowedSecretKey = (req) ->
 responseFormat = (method, args, req, res, spreadArgs=true) ->
 	try
 		if spreadArgs
-			response = await method(...args)
+			response = await method(
+				# ...args
+			)
 		else
 			response = await method(args)
 		retJson =

@@ -1,0 +1,5 @@
+/mnt/c/Users/eddyp/Documents/Ubuntu/scripts/javascript/mongoose-auto-api-coffee/packages/rest/Gruntfile.coffee
+/mnt/c/Users/eddyp/Documents/Ubuntu/scripts/javascript/mongoose-auto-api-coffee/packages/rest/src/driver.coffee
+/mnt/c/Users/eddyp/Documents/Ubuntu/scripts/javascript/mongoose-auto-api-coffee/packages/rest/src/tests/test.coffee
+/mnt/c/Users/eddyp/Documents/Ubuntu/scripts/javascript/mongoose-auto-api-coffee/packages/rest/src/utils/postInstall.coffee
+/mnt/c/Users/eddyp/Documents/Ubuntu/scripts/javascript/mongoose-auto-api-coffee/packages/rest/src/utils/routeWrapper.coffee

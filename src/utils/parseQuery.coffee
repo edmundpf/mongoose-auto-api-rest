@@ -21,9 +21,9 @@ parseQuery = (model, query) ->
 		'$ninc'
 	]
 	allOps = [
-		...mongoOps,
-		...regOps,
-		...incOps,
+		# ...mongoOps,
+		# ...regOps,
+		# ...incOps,
 	]
 	match =
 		$match:
@@ -37,14 +37,15 @@ parseQuery = (model, query) ->
 			if mongoOps.includes(clause.op)
 				expr =
 					$expr:
-						[clause.op]: [
+						# [clause.op]:
+						[
 							"$#{clause.field}"
 							clause.value
 						]
 			else if regOps.includes(clause.op)
 				expr =
-					[clause.field]:
-						$options: 'i'
+					# [clause.field]:
+					{ $options: 'i' }
 				if clause.op == '$strt'
 					expr[clause.field].$regex = "^#{clause.value}"
 				else if clause.op == '$end'
@@ -54,19 +55,25 @@ parseQuery = (model, query) ->
 			else if incOps.includes(clause.op)
 				if clause.op == '$inc'
 					expr =
-						[clause.field]:
+						# [clause.field]:
+						{
 							$elemMatch:
 								$eq: clause.value
+						}
 				else if clause.op == '$ninc'
 					expr =
-						[clause.field]:
+						# [clause.field]:
+						{
 							$not:
 								$elemMatch:
 									$eq: clause.value
+						}
 				else if clause.op == '$nin'
 					expr =
-						[clause.field]:
+						# [clause.field]:
+						{
 							$nin: clause.value
+						}
 			match.$match.$and.push(expr)
 		if match.$match.$and.length == 0
 			match =

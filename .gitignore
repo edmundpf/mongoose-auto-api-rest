@@ -1,10 +1,29 @@
-# Dependencies
-node_modules/
-# Grunt Storage
-.grunt
-# Models Folder
-models/
+# Misc
+.DS_Store
+.vscode/
+
+# Logs
+logs
+*.log
+npm-debug.log*
+
+# Dependency directory
+node_modules
+
+# NPM cache directory
+.npm
+
+# Source Maps
+*.map
+
+# Env
+.env
+
+# Data
+data/
+
 # App Config
 appConfig.json
+
 # Keys
 keys/

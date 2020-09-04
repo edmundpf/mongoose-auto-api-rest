@@ -21,8 +21,8 @@ normalMethods = [
 ]
 
 routeMethods = [
-	...normalMethods,
-	...listMethods
+	# ...normalMethods,
+	# ...listMethods
 ]
 
 #: Get Routes
@@ -44,7 +44,10 @@ getRoutes = () ->
 routes = getRoutes()
 listRoutes = routes.list
 normalRoutes = routes.normal
-appRoutes = {...listRoutes, ...normalRoutes}
+appRoutes = {
+	# ...listRoutes,
+	# ...normalRoutes
+}
 
 #: Exports
 

@@ -134,7 +134,7 @@ request = (endpoint, func, log) ->
 				log: false
 			)
 		return {
-			...res.data,
+			# ...res.data,
 			statusCode: res.status
 		}
 	catch error
@@ -146,7 +146,7 @@ request = (endpoint, func, log) ->
 				log: false
 			)
 		return {
-			...error.response.data,
+			# ...error.response.data,
 			statusCode: error.response.status
 		}
 

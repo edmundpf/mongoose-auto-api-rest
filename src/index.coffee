@@ -172,7 +172,7 @@ start = () ->
 					model.updateOne.bind(model),
 					[
 						{
-							[primaryKey]: req.query[primaryKey]
+							# [primaryKey]: req.query[primaryKey]
 						},
 						updateQuery(req, primaryKey)
 					],
@@ -187,7 +187,7 @@ start = () ->
 					model.deleteOne.bind(model),
 					[
 						{
-							[primaryKey]: req.query[primaryKey]
+							# [primaryKey]: req.query[primaryKey]
 						}
 					],
 					req,
@@ -211,7 +211,7 @@ start = () ->
 					model.find.bind(model),
 					[
 						{
-							[primaryKey]: req.query[primaryKey]
+							# [primaryKey]: req.query[primaryKey]
 						}
 					],
 					req,
@@ -260,13 +260,13 @@ start = () ->
 							parseQuery(model, req.query.where),
 							lookup,
 							unwind,
-							...sortArgs,
+							# ...sortArgs,
 						]
 
 				else
 					aggArgs = [
 						parseQuery(model, req.query.where),
-						...sortArgs,
+						# ...sortArgs,
 					]
 
 				await responseFormat(
@@ -303,8 +303,8 @@ start = () ->
 					'__v'
 				]
 				allFields = [
-					...mongoFields
-					...modelInfo.allFields
+					# ...mongoFields
+					# ...modelInfo.allFields
 				]
 				listFields = modelInfo.listFields
 				records = await model.find({}).lean()
@@ -324,7 +324,7 @@ start = () ->
 					[
 						{},
 						{
-							...normalDict,
+							# ...normalDict,
 							$set: setDict,
 							$unset: unsetDict,
 						},
@@ -366,7 +366,7 @@ start = () ->
 						model.updateOne.bind(model),
 						[
 							{
-								[primaryKey]: req.query[primaryKey]
+								# [primaryKey]: req.query[primaryKey]
 							},
 							{
 								$push: updateDict
@@ -383,7 +383,7 @@ start = () ->
 						model.updateOne.bind(model),
 						[
 							{
-								[primaryKey]: req.query[primaryKey]
+								# [primaryKey]: req.query[primaryKey]
 							},
 							{
 								$addToSet: updateDict
@@ -400,7 +400,7 @@ start = () ->
 						model.updateOne.bind(model),
 						[
 							{
-								[primaryKey]: req.query[primaryKey]
+								# [primaryKey]: req.query[primaryKey]
 							},
 							{
 								$set: updateDict
