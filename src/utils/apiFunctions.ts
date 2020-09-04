@@ -1,3 +1,5 @@
+// TODO: This file was created by bulk-decaffeinate.
+// Sanity-check the conversion and remove this comment.
 /*
  * decaffeinate suggestions:
  * DS101: Remove unnecessary use of Array.from
@@ -279,7 +281,7 @@ const verifyToken = function(req, res, next) {
 		jwt.verify(
 			token,
 			AUTH_TOKEN,
-			function(error, decoded) {
+			(error, decoded) => {
 				const currentTime = Math.round(Date.now() / 1000);
 				const expiresIn = 24 * 60 * 60;
 				const oneHour = 60 * 60;

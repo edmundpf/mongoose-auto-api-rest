@@ -1,3 +1,5 @@
+// TODO: This file was created by bulk-decaffeinate.
+// Sanity-check the conversion and remove this comment.
 /*
  * decaffeinate suggestions:
  * DS101: Remove unnecessary use of Array.from
@@ -329,23 +331,23 @@ describe('Server Started', () => it('Server is on', () => assert(api != null)));
 
 //: Initialization/Admin Setup
 
-describe('Admin setup', function() {
+describe('Admin setup', () => {
 
-	it('Init - Signup not protected', function() {
+	it('Init - Signup not protected', () => {
 		const res = await(post('/signup'));
 		return errorAssert(
 			res,
 			'Not Authorized'
 		);
 	});
-	it('Init - Secret Key endpoint protected', function() {
+	it('Init - Secret Key endpoint protected', () => {
 		const res = await(post('/secret_key/insert'));
 		return errorAssert(
 			res,
 			'No token provided'
 		);
 	});
-	it('Init - Update Secret Key endpoint not protected', function() {
+	it('Init - Update Secret Key endpoint not protected', () => {
 		const res = await(post('/update_secret_key'));
 		return errorAssert(
 			res,
@@ -353,7 +355,7 @@ describe('Admin setup', function() {
 		);
 	});
 
-	it('Create Secret Key - Invalid Key', function() {
+	it('Create Secret Key - Invalid Key', () => {
 		const res = await(post("/update_secret_key?key=test123"));
 		return errorCodeAssert(
 			res,
@@ -364,12 +366,12 @@ describe('Admin setup', function() {
 		);
 	});
 
-	it('Create Secret Key', function() {
+	it('Create Secret Key', () => {
 		const res = await(post(`/update_secret_key?key=${SECRET_KEY1}`));
 		return createAssert(res);
 	});
 
-	it('Update Secret Key endpoint protected', function() {
+	it('Update Secret Key endpoint protected', () => {
 		const res = await(post('/update_secret_key'));
 		return errorAssert(
 			res,
@@ -377,7 +379,7 @@ describe('Admin setup', function() {
 		);
 	});
 
-	it('Signup - Incorrect Secret Key', function() {
+	it('Signup - Incorrect Secret Key', () => {
 		const res = await(post("/signup?username=testUser&password=testPassword&secret_key=incorrectKey"));
 		return errorAssert(
 			res,
@@ -385,7 +387,7 @@ describe('Admin setup', function() {
 		);
 	});
 
-	it('Signup - Invalid Username and Password', function() {
+	it('Signup - Invalid Username and Password', () => {
 		const res = await(post(`/signup?username=user&password=testPassword&secret_key=${SECRET_KEY1}`));
 		return errorCodeAssert(
 			res,
@@ -396,7 +398,7 @@ describe('Admin setup', function() {
 		);
 	});
 
-	return it('Valid Signup', function() {
+	return it('Valid Signup', () => {
 		const res = await(post(`/signup?username=${USERNAME}&password=${PASSWORD1}&secret_key=${SECRET_KEY1}`));
 		if (res.response.access_token != null) {
 			ACCESS_TOKEN = res.response.access_token;
@@ -411,9 +413,9 @@ describe('Admin setup', function() {
 
 //: Admin Validation
 
-describe('Admin validation', function() {
+describe('Admin validation', () => {
 
-	it('No token', function() {
+	it('No token', () => {
 		const res = await(get('/verify_token'));
 		return errorAssert(
 			res,
@@ -421,7 +423,7 @@ describe('Admin validation', function() {
 		);
 	});
 
-	it('Model route - no token', function() {
+	it('Model route - no token', () => {
 		const res = await(get('/customer/get_all'));
 		return errorAssert(
 			res,
@@ -429,13 +431,13 @@ describe('Admin validation', function() {
 		);
 	});
 
-	it('Invalid token', function() {
+	it('Invalid token', () => {
 		a.defaults.headers.common.authorization = ACCESS_TOKEN;
 		const res = await(get('/verify_token?auth_token=invalidToken'));
 		return errorAssert;
 	});
 
-	it('Verify token', function() {
+	it('Verify token', () => {
 		const res = await(get('/verify_token'));
 		return okayAssert(
 			res,
@@ -443,7 +445,7 @@ describe('Admin validation', function() {
 		);
 	});
 
-	it('Update Secret Key', function() {
+	it('Update Secret Key', () => {
 		const res = await(post(`/update_secret_key?key=${SECRET_KEY2}`));
 		return okayModAssert(
 			res,
@@ -452,7 +454,7 @@ describe('Admin validation', function() {
 		);
 	});
 
-	it('Valid Signup after Secret Key update', function() {
+	it('Valid Signup after Secret Key update', () => {
 		const res = await(post(`/signup?username=zelda@email.com&password=testPassword123!&secret_key=${SECRET_KEY2}`));
 		if (res.response.access_token != null) {
 			ACCESS_TOKEN = res.response.access_token;
@@ -464,7 +466,7 @@ describe('Admin validation', function() {
 		);
 	});
 
-	it('Login - User not found', function() {
+	it('Login - User not found', () => {
 		const res = await(post("/login?username=fakeUser@email.com&password=fakePassword1!"));
 		return errorAssert(
 			res,
@@ -472,7 +474,7 @@ describe('Admin validation', function() {
 		);
 	});
 
-	it('Login - Invalid password', function() {
+	it('Login - Invalid password', () => {
 		const res = await(post(`/login?username=${USERNAME}&password=fakePassword1!`));
 		return errorAssert(
 			res,
@@ -480,7 +482,7 @@ describe('Admin validation', function() {
 		);
 	});
 
-	it('Valid login', function() {
+	it('Valid login', () => {
 		const res = await(post(`/login?username=${USERNAME}&password=${PASSWORD1}`));
 		return assert.equal(
 			(res.status === 'ok') &&
@@ -489,7 +491,7 @@ describe('Admin validation', function() {
 		);
 	});
 
-	it('Password change - User not found', function() {
+	it('Password change - User not found', () => {
 		const res = await(post("/update_password?username=fakeUser@email.com&password=fakePassword1!&current_password=fakePassword2!"));
 		return errorAssert(
 			res,
@@ -497,7 +499,7 @@ describe('Admin validation', function() {
 		);
 	});
 
-	it('Password change - Invalid password', function() {
+	it('Password change - Invalid password', () => {
 		const res = await(post(`/update_password?username=${USERNAME}&password=fakePassword1!&current_password=fakePassword2!`));
 		return errorAssert(
 			res,
@@ -505,7 +507,7 @@ describe('Admin validation', function() {
 		);
 	});
 
-	it('Password change - no current password', function() {
+	it('Password change - no current password', () => {
 		const res = await(post(`/update_password?username=${USERNAME}&password=fakePassword1!`));
 		return errorAssert(
 			res,
@@ -513,7 +515,7 @@ describe('Admin validation', function() {
 		);
 	});
 
-	it('Password change - invalid password', function() {
+	it('Password change - invalid password', () => {
 		const res = await(post(`/update_password?username=${USERNAME}&password=fakePassword&current_password=${PASSWORD1}`));
 		return errorCodeAssert(
 			res,
@@ -521,7 +523,7 @@ describe('Admin validation', function() {
 		);
 	});
 
-	it('Valid password change', function() {
+	it('Valid password change', () => {
 		const res = await(post(`/update_password?username=${USERNAME}&password=${PASSWORD2}&current_password=${PASSWORD1}`));
 		return okayAssert(
 			res,
@@ -529,7 +531,7 @@ describe('Admin validation', function() {
 		);
 	});
 
-	return it('Post password change - valid login', function() {
+	return it('Post password change - valid login', () => {
 		const res = await(post(`/login?username=${USERNAME}&password=${PASSWORD2}`));
 		return assert.equal(
 			(res.status === 'ok') &&
@@ -541,9 +543,9 @@ describe('Admin validation', function() {
 
 //: API Methods
 
-describe('API Methods', function() {
+describe('API Methods', () => {
 
-	it('Invalid insert', function() {
+	it('Invalid insert', () => {
 		const res = await(post("/customer/insert?name=bob"));
 		return errorAssert(
 			res,
@@ -551,7 +553,7 @@ describe('API Methods', function() {
 		);
 	});
 
-	it('Valid insert', function() {
+	it('Valid insert', () => {
 		const res = await(post("/customer/insert?name=bob&email=bob@email.com"));
 		return okayExistsAssert(
 			res,
@@ -562,7 +564,7 @@ describe('API Methods', function() {
 		);
 	});
 
-	it('Valid sub-document and encoded insert', function() {
+	it('Valid sub-document and encoded insert', () => {
 		const params = new URLSearchParams({
 			name: JSON.stringify({address: 'home'}),
 			password: 'testPassword'
@@ -577,7 +579,7 @@ describe('API Methods', function() {
 		);
 	});
 
-	it('Invalid update', function() {
+	it('Invalid update', () => {
 		const res = await(post("/customer/update?name=joe"));
 		return okayModAssert(
 			res,
@@ -586,7 +588,7 @@ describe('API Methods', function() {
 		);
 	});
 
-	it('Valid update', function() {
+	it('Valid update', () => {
 		const res = await(post("/customer/update?name=bob&email=bob1@gmail.com"));
 		return okayModAssert(
 			res,
@@ -595,7 +597,7 @@ describe('API Methods', function() {
 		);
 	});
 
-	it('Invalid get', function() {
+	it('Invalid get', () => {
 		const res = await(get("/customer/get?name=joe"));
 		return assert.equal(
 			(res.status === 'ok') &&
@@ -605,7 +607,7 @@ describe('API Methods', function() {
 		);
 	});
 
-	it('Valid get', function() {
+	it('Valid get', () => {
 		const res = await(get("/customer/get?name=bob"));
 		return assert.equal(
 			(res.status === 'ok') &&
@@ -617,7 +619,7 @@ describe('API Methods', function() {
 		);
 	});
 
-	it('Valid get-all', function() {
+	it('Valid get-all', () => {
 		const res = await(get("/customer/get_all"));
 		return assert.equal(
 			(res.status === 'ok') &&
@@ -629,7 +631,7 @@ describe('API Methods', function() {
 		);
 	});
 
-	it('Schema info - list fields', function() {
+	it('Schema info - list fields', () => {
 		const res = await(get("/customer/schema"));
 		return assert.equal(
 			(res.status === 'ok') &&
@@ -641,7 +643,7 @@ describe('API Methods', function() {
 		);
 	});
 
-	it('Schema info - encrypted fields', function() {
+	it('Schema info - encrypted fields', () => {
 		const res = await(get("/user_auth/schema"));
 		return assert.equal(
 			(res.status === 'ok') &&
@@ -653,7 +655,7 @@ describe('API Methods', function() {
 		);
 	});
 
-	it('Schema info - encoded and sub-document fields', function() {
+	it('Schema info - encoded and sub-document fields', () => {
 		const res = await(get("/sub_doc/schema"));
 		return assert.equal(
 			(res.status === 'ok') &&
@@ -665,7 +667,7 @@ describe('API Methods', function() {
 		);
 	});
 
-	it('Sterilize - remove obsolete, and set fields for all documents', function() {
+	it('Sterilize - remove obsolete, and set fields for all documents', () => {
 		const res = await(get("/customer/sterilize?email=master@email.com&products=apples,oranges"));
 		const users = await(get("/customer/get_all"));
 		let hasChanges = true;
@@ -684,7 +686,7 @@ describe('API Methods', function() {
 		);
 	});
 
-	it('Invalid delete', function() {
+	it('Invalid delete', () => {
 		await(post("/customer/insert?name=tom&email=tom@email.com"));
 		await(post("/customer/insert?name=jerry&email=jerry@email.com"));
 		const res = await(remove("/customer/delete?name=barney"));
@@ -695,7 +697,7 @@ describe('API Methods', function() {
 		);
 	});
 
-	it('Invalid find', function() {
+	it('Invalid find', () => {
 		const res = await(get("/customer/find?where="));
 		return errorAssert(
 			res,
@@ -826,7 +828,7 @@ describe('API Methods', function() {
     )
     ));
 
-	it('Valid find w/ multiple arguments', function() {
+	it('Valid find w/ multiple arguments', () => {
 		let query = [
 			{
 				field: 'email',
@@ -854,7 +856,7 @@ describe('API Methods', function() {
 		);
 	});
 
-	it('Valid list field lookup', function() {
+	it('Valid list field lookup', () => {
 		let query = [
 			{
 				field: 'email',
@@ -875,7 +877,7 @@ describe('API Methods', function() {
 		);
 	});
 
-	it('Valid get_all sort and limit', function() {
+	it('Valid get_all sort and limit', () => {
 		let query = {
 			sort_field: 'name',
 			sort_order: -1,
@@ -892,7 +894,7 @@ describe('API Methods', function() {
 		);
 	});
 
-	it('Valid get_all sort, limit, and skip', function() {
+	it('Valid get_all sort, limit, and skip', () => {
 		let query = {
 			sort_field: 'name',
 			sort_order: -1,
@@ -910,7 +912,7 @@ describe('API Methods', function() {
 		);
 	});
 
-	it('Valid find sort and limit', function() {
+	it('Valid find sort and limit', () => {
 		let query = {
 			sort_field: 'name',
 			sort_order: -1,
@@ -935,7 +937,7 @@ describe('API Methods', function() {
 		);
 	});
 
-	it('Valid find sort, limit, and skip', function() {
+	it('Valid find sort, limit, and skip', () => {
 		let query = {
 			sort_field: 'name',
 			sort_order: -1,
@@ -955,7 +957,7 @@ describe('API Methods', function() {
 		);
 	});
 
-	it('Valid non-list field lookup', function() {
+	it('Valid non-list field lookup', () => {
 		let query = [
 			{
 				field: 'email',
@@ -975,7 +977,7 @@ describe('API Methods', function() {
 		);
 	});
 
-	it('Valid find w/ no records found', function() {
+	it('Valid find w/ no records found', () => {
 		let query = [
 			{
 				field: 'email',
@@ -993,7 +995,7 @@ describe('API Methods', function() {
 		);
 	});
 
-	it('Valid delete', function() {
+	it('Valid delete', () => {
 		const res = await(remove("/customer/delete?name=tom"));
 		return okayModAssert(
 			res,
@@ -1002,7 +1004,7 @@ describe('API Methods', function() {
 		);
 	});
 
-	it('Valid push', function() {
+	it('Valid push', () => {
 		const res = await(post("/customer/push?name=bob&products=apples,oranges"));
 		const user = await(get("/customer/get?name=bob"));
 		return assert.equal(
@@ -1015,7 +1017,7 @@ describe('API Methods', function() {
 		);
 	});
 
-	it('Invalid push unique', function() {
+	it('Invalid push unique', () => {
 		const res = await(post("/customer/push_unique?name=bob&products=apples,oranges"));
 		const user = await(get("/customer/get?name=bob"));
 		return assert.equal(
@@ -1026,7 +1028,7 @@ describe('API Methods', function() {
 		);
 	});
 
-	it('Valid push unique', function() {
+	it('Valid push unique', () => {
 		const res = await(post("/customer/push_unique?name=bob&products=pears,grapes"));
 		const user = await(get("/customer/get?name=bob"));
 		return assert.equal(
@@ -1039,7 +1041,7 @@ describe('API Methods', function() {
 		);
 	});
 
-	it('Valid set', function() {
+	it('Valid set', () => {
 		const res = await(post("/customer/set?name=bob&products=beets,carrots"));
 		const user = await(get("/customer/get?name=bob"));
 		return assert.equal(
@@ -1052,7 +1054,7 @@ describe('API Methods', function() {
 		);
 	});
 
-	it('Valid set - no items', function() {
+	it('Valid set - no items', () => {
 		const res = await(post("/customer/set?name=bob&products=[]"));
 		const user = await(get("/customer/get?name=bob"));
 		return assert.equal(
@@ -1064,7 +1066,7 @@ describe('API Methods', function() {
 		);
 	});
 
-	it('Valid delete all', function() {
+	it('Valid delete all', () => {
 		const res = await(remove("/customer/delete_all"));
 		return okayModAssert(
 			res,
@@ -1073,7 +1075,7 @@ describe('API Methods', function() {
 		);
 	});
 
-	return it('Admin Auth cleanup', function() {
+	return it('Admin Auth cleanup', () => {
 		const user = await(remove('/user_auth/delete_all'));
 		const secret = await(remove('/secret_key/delete_all'));
 		const subDoc = await(remove('/sub_doc/delete_all'));
@@ -1095,7 +1097,7 @@ describe('API Methods', function() {
 
 // Cleanup
 
-after(function(done) {
+after(done => {
 	for (let key in models) {
 		const val = models[key];
 		if (fs.existsSync(key)) {

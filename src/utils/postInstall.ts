@@ -1,3 +1,5 @@
+// TODO: This file was created by bulk-decaffeinate.
+// Sanity-check the conversion and remove this comment.
 let error;
 import fs from 'fs';
 import defaultConfig from '../data/defaultConfig.json';
