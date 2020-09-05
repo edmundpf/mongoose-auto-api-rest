@@ -224,14 +224,14 @@ const signToken = (user, curToken) => {
     }, curToken.k, {
         expiresIn: TOKEN_EXPIRY,
         header: {
-            kid: String(curToken.exp)
-        }
+            kid: String(curToken.exp),
+        },
     });
     return {
         username: user.username,
         uid: user.uid,
         access_token,
-        expires_in: TOKEN_EXPIRY
+        expires_in: TOKEN_EXPIRY,
     };
 };
 exports.signToken = signToken;

@@ -14,13 +14,13 @@ const store = new json_config_ts_1.default({
     defaultData: {
         cur: {
             k: '',
-            exp: 0
+            exp: 0,
         },
         prev: {
             k: '',
-            exp: 0
-        }
-    }
+            exp: 0,
+        },
+    },
 });
 // Update Key Data
 const updateKeyData = (key, preservePrev = false) => {
@@ -29,7 +29,7 @@ const updateKeyData = (key, preservePrev = false) => {
     }
     store.set(key, {
         k: uuidv4_1.default(),
-        exp: Math.round(new Date().getTime() / 1000) + apiFunctions_1.TOKEN_EXPIRY
+        exp: Math.round(new Date().getTime() / 1000) + apiFunctions_1.TOKEN_EXPIRY,
     });
 };
 // Get Keys

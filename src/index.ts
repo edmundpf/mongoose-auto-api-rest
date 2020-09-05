@@ -1,5 +1,3 @@
-import fs from 'fs'
-import path from 'path'
 import https from 'https'
 import cors from 'cors'
 import bcrypt from 'bcrypt'
@@ -30,10 +28,12 @@ import { signToken } from './utils/apiFunctions'
 import { verifyToken } from './utils/apiFunctions'
 import { ONE_DAY } from './utils/apiFunctions'
 import { getKeys } from './utils/jwtRotation'
+import { resolve, join } from 'path'
+import { existsSync, readFileSync } from 'fs'
 
 //: Setup
 
-const config = fs.existsSync('../../../appConfig.json')
+const config = existsSync(join(__dirname, '../../../appConfig.json'))
 	? require('../../../appConfig.json')
 	: require('./data/defaultConfig.json')
 const serverPort =
@@ -110,13 +110,13 @@ const startServer = () => {
 	let chainPath = config.sslChain
 		? config.sslChain
 		: `/etc/letsencrypt/live/${config.serverAddress}/chain.pem`
-	keyPath = path.resolve(keyPath)
-	certPath = path.resolve(certPath)
-	chainPath = path.resolve(chainPath)
+	keyPath = resolve(keyPath)
+	certPath = resolve(certPath)
+	chainPath = resolve(chainPath)
 
-	const keyExists = fs.existsSync(keyPath)
-	const certExists = fs.existsSync(certPath)
-	const chainExists = fs.existsSync(chainPath)
+	const keyExists = existsSync(keyPath)
+	const certExists = existsSync(certPath)
+	const chainExists = existsSync(chainPath)
 
 	app.use(compression())
 
@@ -144,9 +144,9 @@ const startServer = () => {
 		https
 			.createServer(
 				{
-					key: fs.readFileSync(keyPath),
-					cert: fs.readFileSync(certPath),
-					ca: fs.readFileSync(chainPath),
+					key: readFileSync(keyPath),
+					cert: readFileSync(certPath),
+					ca: readFileSync(chainPath),
 				},
 				app
 			)

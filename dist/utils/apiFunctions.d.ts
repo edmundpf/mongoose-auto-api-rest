@@ -36,4 +36,4 @@ declare const signToken: (user: any, curToken: any) => {
     expires_in: number;
 };
 declare const verifyToken: (req: any, res: any, next: any) => Promise<any>;
-export { objOmit, errorObj, parseDataSort, schemaAsync, updateQuery, allowedPassword, allowedSecretKey, responseFormat, incorrectSecretKey, incorrectUserOrPass, userNotFound, noCurrentPass, signToken, verifyToken, ONE_DAY, TOKEN_EXPIRY };
+export { objOmit, errorObj, parseDataSort, schemaAsync, updateQuery, allowedPassword, allowedSecretKey, responseFormat, incorrectSecretKey, incorrectUserOrPass, userNotFound, noCurrentPass, signToken, verifyToken, ONE_DAY, TOKEN_EXPIRY, };

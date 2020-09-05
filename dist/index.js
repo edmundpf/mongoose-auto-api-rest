@@ -12,8 +12,6 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const fs_1 = __importDefault(require("fs"));
-const path_1 = __importDefault(require("path"));
 const https_1 = __importDefault(require("https"));
 const cors_1 = __importDefault(require("cors"));
 const bcrypt_1 = __importDefault(require("bcrypt"));
@@ -44,8 +42,10 @@ const apiFunctions_13 = require("./utils/apiFunctions");
 const apiFunctions_14 = require("./utils/apiFunctions");
 const apiFunctions_15 = require("./utils/apiFunctions");
 const jwtRotation_1 = require("./utils/jwtRotation");
+const path_1 = require("path");
+const fs_1 = require("fs");
 //: Setup
-const config = fs_1.default.existsSync('../../../appConfig.json')
+const config = fs_1.existsSync(path_1.join(__dirname, '../../../appConfig.json'))
     ? require('../../../appConfig.json')
     : require('./data/defaultConfig.json');
 const serverPort = process.env.NODE_ENV === 'production'
@@ -109,12 +109,12 @@ const startServer = () => {
     let chainPath = config.sslChain
         ? config.sslChain
         : `/etc/letsencrypt/live/${config.serverAddress}/chain.pem`;
-    keyPath = path_1.default.resolve(keyPath);
-    certPath = path_1.default.resolve(certPath);
-    chainPath = path_1.default.resolve(chainPath);
-    const keyExists = fs_1.default.existsSync(keyPath);
-    const certExists = fs_1.default.existsSync(certPath);
-    const chainExists = fs_1.default.existsSync(chainPath);
+    keyPath = path_1.resolve(keyPath);
+    certPath = path_1.resolve(certPath);
+    chainPath = path_1.resolve(chainPath);
+    const keyExists = fs_1.existsSync(keyPath);
+    const certExists = fs_1.existsSync(certPath);
+    const chainExists = fs_1.existsSync(chainPath);
     app.use(compression_1.default());
     if (config.serverAddress !== 'localhost' &&
         keyExists &&
@@ -134,9 +134,9 @@ const startServer = () => {
         print_tools_js_1.default.success('Secure server starting...', { log: false });
         https_1.default
             .createServer({
-            key: fs_1.default.readFileSync(keyPath),
-            cert: fs_1.default.readFileSync(certPath),
-            ca: fs_1.default.readFileSync(chainPath),
+            key: fs_1.readFileSync(keyPath),
+            cert: fs_1.readFileSync(certPath),
+            ca: fs_1.readFileSync(chainPath),
         }, app)
             .listen(serverPort, serverStarted);
     }
