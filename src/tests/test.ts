@@ -118,7 +118,7 @@ const models = {
 //: Start Server Hook
 
 before(async function () {
-	this.timeout(20000)
+	this.timeout(10000)
 	if (!fs.existsSync('./models')) {
 		fs.mkdirSync('./models')
 	}
