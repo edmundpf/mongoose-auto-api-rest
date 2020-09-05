@@ -32,7 +32,7 @@
 	},
 })
 
-*Defined in [utils/jwtRotation.ts:7](https://github.com/edmundpf/mongoose-auto-api-rest/blob/38cb0f7/src/utils/jwtRotation.ts#L7)*
+*Defined in [utils/jwtRotation.ts:7](https://github.com/edmundpf/mongoose-auto-api-rest/blob/7dbbc32/src/utils/jwtRotation.ts#L7)*
 
 ## Functions
 
@@ -40,7 +40,7 @@
 
 ▸ **getKeys**(): *any*
 
-*Defined in [utils/jwtRotation.ts:36](https://github.com/edmundpf/mongoose-auto-api-rest/blob/38cb0f7/src/utils/jwtRotation.ts#L36)*
+*Defined in [utils/jwtRotation.ts:36](https://github.com/edmundpf/mongoose-auto-api-rest/blob/7dbbc32/src/utils/jwtRotation.ts#L36)*
 
 **Returns:** *any*
 
@@ -50,7 +50,7 @@ ___
 
 ▸ **updateKeyData**(`key`: string, `preservePrev`: boolean): *void*
 
-*Defined in [utils/jwtRotation.ts:24](https://github.com/edmundpf/mongoose-auto-api-rest/blob/38cb0f7/src/utils/jwtRotation.ts#L24)*
+*Defined in [utils/jwtRotation.ts:24](https://github.com/edmundpf/mongoose-auto-api-rest/blob/7dbbc32/src/utils/jwtRotation.ts#L24)*
 
 **Parameters:**
 
