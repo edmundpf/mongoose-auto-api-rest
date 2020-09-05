@@ -1,6 +1,6 @@
 declare const _default: {
     app: any;
-    start: () => Promise<any>;
+    start: () => Promise<void>;
     models: any;
     config: any;
 };

@@ -1,3 +1,5 @@
+declare const ONE_DAY: number;
+declare const TOKEN_EXPIRY: number;
 declare const objOmit: (obj: any, keys: Array<string>) => any;
 declare const errorObj: (error: any) => {
     message: any;
@@ -27,11 +29,11 @@ declare const incorrectSecretKey: (res: any) => any;
 declare const incorrectUserOrPass: (res: any) => any;
 declare const userNotFound: (res: any) => any;
 declare const noCurrentPass: (res: any) => any;
-declare const signToken: (user: any) => {
+declare const signToken: (user: any, curToken: any) => {
     username: any;
     uid: any;
     access_token: any;
     expires_in: number;
 };
 declare const verifyToken: (req: any, res: any, next: any) => Promise<any>;
-export { objOmit, errorObj, parseDataSort, schemaAsync, updateQuery, allowedPassword, allowedSecretKey, responseFormat, incorrectSecretKey, incorrectUserOrPass, userNotFound, noCurrentPass, signToken, verifyToken, };
+export { objOmit, errorObj, parseDataSort, schemaAsync, updateQuery, allowedPassword, allowedSecretKey, responseFormat, incorrectSecretKey, incorrectUserOrPass, userNotFound, noCurrentPass, signToken, verifyToken, ONE_DAY, TOKEN_EXPIRY };

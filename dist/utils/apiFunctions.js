@@ -12,14 +12,17 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.verifyToken = exports.signToken = exports.noCurrentPass = exports.userNotFound = exports.incorrectUserOrPass = exports.incorrectSecretKey = exports.responseFormat = exports.allowedSecretKey = exports.allowedPassword = exports.updateQuery = exports.schemaAsync = exports.parseDataSort = exports.errorObj = exports.objOmit = void 0;
+exports.TOKEN_EXPIRY = exports.ONE_DAY = exports.verifyToken = exports.signToken = exports.noCurrentPass = exports.userNotFound = exports.incorrectUserOrPass = exports.incorrectSecretKey = exports.responseFormat = exports.allowedSecretKey = exports.allowedPassword = exports.updateQuery = exports.schemaAsync = exports.parseDataSort = exports.errorObj = exports.objOmit = void 0;
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
-const uuidv4_1 = __importDefault(require("uuidv4"));
 const mongoose_auto_api_validation_1 = __importDefault(require("mongoose-auto-api.validation"));
 const mongoose_auto_api_models_1 = __importDefault(require("mongoose-auto-api.models"));
 const userAuth = mongoose_auto_api_models_1.default.userAuth.model;
 const secretKey = mongoose_auto_api_models_1.default.secretKey.model;
-const AUTH_TOKEN = uuidv4_1.default();
+const ONE_HOUR = 60 * 60;
+const ONE_DAY = 24 * ONE_HOUR;
+exports.ONE_DAY = ONE_DAY;
+const TOKEN_EXPIRY = 7 * ONE_DAY;
+exports.TOKEN_EXPIRY = TOKEN_EXPIRY;
 //::: MISC FUNCTIONS :::
 // Omit Properties from Object and get Copy
 const objOmit = (obj, keys) => {
@@ -214,17 +217,21 @@ const noCurrentPass = (res) => res.status(401).json({
 exports.noCurrentPass = noCurrentPass;
 //::: TOKEN FUNCTIONS :::
 // Sign JSON Web Token (expires in 7 days)
-const signToken = (user) => {
-    const expires_in = 24 * 60 * 60 * 7;
+const signToken = (user, curToken) => {
     const access_token = jsonwebtoken_1.default.sign({
         username: user.username,
         uid: user.uid,
-    }, AUTH_TOKEN, { expiresIn: expires_in });
+    }, curToken.k, {
+        expiresIn: TOKEN_EXPIRY,
+        header: {
+            kid: String(curToken.exp)
+        }
+    });
     return {
         username: user.username,
         uid: user.uid,
         access_token,
-        expires_in,
+        expires_in: TOKEN_EXPIRY
     };
 };
 exports.signToken = signToken;
@@ -257,10 +264,16 @@ const verifyToken = (req, res, next) => __awaiter(void 0, void 0, void 0, functi
         });
     }
     else {
-        jsonwebtoken_1.default.verify(token, AUTH_TOKEN, (error, decoded) => {
+        const jwtKeys = req.app.locals.jwtKeys;
+        jsonwebtoken_1.default.verify(token, (header, cb) => {
+            for (const key in jwtKeys) {
+                if (jwtKeys[key].exp == header.kid) {
+                    return cb(null, jwtKeys[key].k);
+                }
+            }
+            return cb(null, null);
+        }, (error, decoded) => {
             const currentTime = Math.round(Date.now() / 1000);
-            const expiresIn = 24 * 60 * 60;
-            const oneHour = 60 * 60;
             if (error) {
                 return res.status(401).json({
                     status: 'error',
@@ -270,8 +283,8 @@ const verifyToken = (req, res, next) => __awaiter(void 0, void 0, void 0, functi
                 });
             }
             else if (currentTime < decoded.exp &&
-                currentTime + expiresIn > decoded.exp + oneHour) {
-                res.locals.refresh_token = signToken(decoded);
+                currentTime + ONE_DAY > decoded.exp + ONE_HOUR) {
+                res.locals.refresh_token = signToken(decoded, jwtKeys.cur);
                 return next();
             }
             else {

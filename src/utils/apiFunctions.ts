@@ -1,11 +1,12 @@
 import jwt from 'jsonwebtoken'
-import { default as uuid } from 'uuidv4'
 import validation from 'mongoose-auto-api.validation'
 import models from 'mongoose-auto-api.models'
 
 const userAuth = models.userAuth.model
 const secretKey = models.secretKey.model
-const AUTH_TOKEN = uuid()
+const ONE_HOUR = 60 * 60
+const ONE_DAY = 24 * ONE_HOUR
+const TOKEN_EXPIRY = 7 * ONE_DAY
 
 //::: MISC FUNCTIONS :::
 
@@ -219,21 +220,25 @@ const noCurrentPass = (res) =>
 
 // Sign JSON Web Token (expires in 7 days)
 
-const signToken = (user) => {
-	const expires_in = 24 * 60 * 60 * 7
+const signToken = (user, curToken) => {
 	const access_token = jwt.sign(
 		{
 			username: user.username,
 			uid: user.uid,
 		},
-		AUTH_TOKEN,
-		{ expiresIn: expires_in }
+		curToken.k,
+		{
+			expiresIn: TOKEN_EXPIRY,
+			header: {
+				kid: String(curToken.exp),
+			},
+		}
 	)
 	return {
 		username: user.username,
 		uid: user.uid,
 		access_token,
-		expires_in,
+		expires_in: TOKEN_EXPIRY,
 	}
 }
 
@@ -266,27 +271,37 @@ const verifyToken = async (req, res, next) => {
 			},
 		})
 	} else {
-		jwt.verify(token, AUTH_TOKEN, (error, decoded) => {
-			const currentTime = Math.round(Date.now() / 1000)
-			const expiresIn = 24 * 60 * 60
-			const oneHour = 60 * 60
-			if (error) {
-				return res.status(401).json({
-					status: 'error',
-					response: {
-						message: 'Invalid token.',
-					},
-				})
-			} else if (
-				currentTime < decoded.exp &&
-				currentTime + expiresIn > decoded.exp + oneHour
-			) {
-				res.locals.refresh_token = signToken(decoded)
-				return next()
-			} else {
-				return next()
+		const jwtKeys = req.app.locals.jwtKeys
+		jwt.verify(
+			token,
+			(header, cb) => {
+				for (const key in jwtKeys) {
+					if (jwtKeys[key].exp == header.kid) {
+						return cb(null, jwtKeys[key].k)
+					}
+				}
+				return cb(null, null)
+			},
+			(error, decoded) => {
+				const currentTime = Math.round(Date.now() / 1000)
+				if (error) {
+					return res.status(401).json({
+						status: 'error',
+						response: {
+							message: 'Invalid token.',
+						},
+					})
+				} else if (
+					currentTime < decoded.exp &&
+					currentTime + ONE_DAY > decoded.exp + ONE_HOUR
+				) {
+					res.locals.refresh_token = signToken(decoded, jwtKeys.cur)
+					return next()
+				} else {
+					return next()
+				}
 			}
-		})
+		)
 	}
 }
 
@@ -307,6 +322,8 @@ export {
 	noCurrentPass,
 	signToken,
 	verifyToken,
+	ONE_DAY,
+	TOKEN_EXPIRY,
 }
 
 //::: End Program :::
