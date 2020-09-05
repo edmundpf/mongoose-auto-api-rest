@@ -1,13 +1,13 @@
 {
   "name": "mongoose-auto-api.rest",
-  "version": "2.0.3",
+  "version": "2.0.4",
   "description": "Automatic Mongoose REST API - Rest API Module",
   "main": "./dist/index.js",
   "files": [
-		"/dist/driver.*",
-		"/dist/index.*",
-		"/dist/data",
-		"/dist/utils"
+    "/dist/driver.*",
+    "/dist/index.*",
+    "/dist/data",
+    "/dist/utils"
   ],
   "scripts": {
     "compile": "tsc",
