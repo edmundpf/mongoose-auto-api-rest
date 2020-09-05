@@ -2,9 +2,9 @@
   "name": "mongoose-auto-api.rest",
   "version": "2.0.0",
   "description": "Automatic Mongoose REST API - Rest API Module",
-  "main": "./js/index.js",
+  "main": "./dist/index.js",
   "files": [
-    "/js"
+    "/dist"
   ],
   "scripts": {
     "compile": "tsc",
