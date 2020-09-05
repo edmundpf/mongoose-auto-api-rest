@@ -172,6 +172,8 @@ import api from 'mongoose-auto-api.rest'
 
 - v2.0.0
   - Codebase converted from Coffeescript -> Typescript
+- v2.0.2
+  - Automatic JWT Rotation w/ JWK kid claims
 
 ## Documentation
 
