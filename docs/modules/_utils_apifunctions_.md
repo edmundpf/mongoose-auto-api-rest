@@ -34,7 +34,7 @@
 
 • **AUTH_TOKEN**: *string* = uuid()
 
-*Defined in [utils/apiFunctions.ts:8](https://github.com/edmundpf/mongoose-auto-api-rest/blob/8bc98fa/src/utils/apiFunctions.ts#L8)*
+*Defined in [utils/apiFunctions.ts:8](https://github.com/edmundpf/mongoose-auto-api-rest/blob/3e697bb/src/utils/apiFunctions.ts#L8)*
 
 ___
 
@@ -42,7 +42,7 @@ ___
 
 • **secretKey**: *any* = models.secretKey.model
 
-*Defined in [utils/apiFunctions.ts:7](https://github.com/edmundpf/mongoose-auto-api-rest/blob/8bc98fa/src/utils/apiFunctions.ts#L7)*
+*Defined in [utils/apiFunctions.ts:7](https://github.com/edmundpf/mongoose-auto-api-rest/blob/3e697bb/src/utils/apiFunctions.ts#L7)*
 
 ___
 
@@ -50,7 +50,7 @@ ___
 
 • **userAuth**: *any* = models.userAuth.model
 
-*Defined in [utils/apiFunctions.ts:6](https://github.com/edmundpf/mongoose-auto-api-rest/blob/8bc98fa/src/utils/apiFunctions.ts#L6)*
+*Defined in [utils/apiFunctions.ts:6](https://github.com/edmundpf/mongoose-auto-api-rest/blob/3e697bb/src/utils/apiFunctions.ts#L6)*
 
 ## Functions
 
@@ -58,7 +58,7 @@ ___
 
 ▸ **allowedPassword**(`req`: any): *true | object*
 
-*Defined in [utils/apiFunctions.ts:114](https://github.com/edmundpf/mongoose-auto-api-rest/blob/8bc98fa/src/utils/apiFunctions.ts#L114)*
+*Defined in [utils/apiFunctions.ts:114](https://github.com/edmundpf/mongoose-auto-api-rest/blob/3e697bb/src/utils/apiFunctions.ts#L114)*
 
 **Parameters:**
 
@@ -74,7 +74,7 @@ ___
 
 ▸ **allowedSecretKey**(`req`: any): *true | object*
 
-*Defined in [utils/apiFunctions.ts:130](https://github.com/edmundpf/mongoose-auto-api-rest/blob/8bc98fa/src/utils/apiFunctions.ts#L130)*
+*Defined in [utils/apiFunctions.ts:130](https://github.com/edmundpf/mongoose-auto-api-rest/blob/3e697bb/src/utils/apiFunctions.ts#L130)*
 
 **Parameters:**
 
@@ -90,7 +90,7 @@ ___
 
 ▸ **errorObj**(`error`: any): *object*
 
-*Defined in [utils/apiFunctions.ts:24](https://github.com/edmundpf/mongoose-auto-api-rest/blob/8bc98fa/src/utils/apiFunctions.ts#L24)*
+*Defined in [utils/apiFunctions.ts:24](https://github.com/edmundpf/mongoose-auto-api-rest/blob/3e697bb/src/utils/apiFunctions.ts#L24)*
 
 **Parameters:**
 
@@ -112,7 +112,7 @@ ___
 
 ▸ **incorrectSecretKey**(`res`: any): *any*
 
-*Defined in [utils/apiFunctions.ts:176](https://github.com/edmundpf/mongoose-auto-api-rest/blob/8bc98fa/src/utils/apiFunctions.ts#L176)*
+*Defined in [utils/apiFunctions.ts:176](https://github.com/edmundpf/mongoose-auto-api-rest/blob/3e697bb/src/utils/apiFunctions.ts#L176)*
 
 **Parameters:**
 
@@ -128,7 +128,7 @@ ___
 
 ▸ **incorrectUserOrPass**(`res`: any): *any*
 
-*Defined in [utils/apiFunctions.ts:187](https://github.com/edmundpf/mongoose-auto-api-rest/blob/8bc98fa/src/utils/apiFunctions.ts#L187)*
+*Defined in [utils/apiFunctions.ts:187](https://github.com/edmundpf/mongoose-auto-api-rest/blob/3e697bb/src/utils/apiFunctions.ts#L187)*
 
 **Parameters:**
 
@@ -144,7 +144,7 @@ ___
 
 ▸ **noCurrentPass**(`res`: any): *any*
 
-*Defined in [utils/apiFunctions.ts:209](https://github.com/edmundpf/mongoose-auto-api-rest/blob/8bc98fa/src/utils/apiFunctions.ts#L209)*
+*Defined in [utils/apiFunctions.ts:209](https://github.com/edmundpf/mongoose-auto-api-rest/blob/3e697bb/src/utils/apiFunctions.ts#L209)*
 
 **Parameters:**
 
@@ -160,7 +160,7 @@ ___
 
 ▸ **objOmit**(`obj`: any, `keys`: Array‹string›): *any*
 
-*Defined in [utils/apiFunctions.ts:14](https://github.com/edmundpf/mongoose-auto-api-rest/blob/8bc98fa/src/utils/apiFunctions.ts#L14)*
+*Defined in [utils/apiFunctions.ts:14](https://github.com/edmundpf/mongoose-auto-api-rest/blob/3e697bb/src/utils/apiFunctions.ts#L14)*
 
 **Parameters:**
 
@@ -177,7 +177,7 @@ ___
 
 ▸ **parseDataSort**(`query`: any, `aggregate`: boolean): *any*
 
-*Defined in [utils/apiFunctions.ts:32](https://github.com/edmundpf/mongoose-auto-api-rest/blob/8bc98fa/src/utils/apiFunctions.ts#L32)*
+*Defined in [utils/apiFunctions.ts:32](https://github.com/edmundpf/mongoose-auto-api-rest/blob/3e697bb/src/utils/apiFunctions.ts#L32)*
 
 **Parameters:**
 
@@ -194,7 +194,7 @@ ___
 
 ▸ **responseFormat**(`method`: any, `args`: any, `req`: any, `res`: any, `spreadArgs`: boolean): *Promise‹any›*
 
-*Defined in [utils/apiFunctions.ts:146](https://github.com/edmundpf/mongoose-auto-api-rest/blob/8bc98fa/src/utils/apiFunctions.ts#L146)*
+*Defined in [utils/apiFunctions.ts:146](https://github.com/edmundpf/mongoose-auto-api-rest/blob/3e697bb/src/utils/apiFunctions.ts#L146)*
 
 **Parameters:**
 
@@ -214,7 +214,7 @@ ___
 
 ▸ **schemaAsync**(`model`: any): *Promise‹object›*
 
-*Defined in [utils/apiFunctions.ts:99](https://github.com/edmundpf/mongoose-auto-api-rest/blob/8bc98fa/src/utils/apiFunctions.ts#L99)*
+*Defined in [utils/apiFunctions.ts:99](https://github.com/edmundpf/mongoose-auto-api-rest/blob/3e697bb/src/utils/apiFunctions.ts#L99)*
 
 **Parameters:**
 
@@ -230,7 +230,7 @@ ___
 
 ▸ **schemaInfo**(`model`: any): *object*
 
-*Defined in [utils/apiFunctions.ts:88](https://github.com/edmundpf/mongoose-auto-api-rest/blob/8bc98fa/src/utils/apiFunctions.ts#L88)*
+*Defined in [utils/apiFunctions.ts:88](https://github.com/edmundpf/mongoose-auto-api-rest/blob/3e697bb/src/utils/apiFunctions.ts#L88)*
 
 **Parameters:**
 
@@ -258,7 +258,7 @@ ___
 
 ▸ **signToken**(`user`: any): *object*
 
-*Defined in [utils/apiFunctions.ts:222](https://github.com/edmundpf/mongoose-auto-api-rest/blob/8bc98fa/src/utils/apiFunctions.ts#L222)*
+*Defined in [utils/apiFunctions.ts:222](https://github.com/edmundpf/mongoose-auto-api-rest/blob/3e697bb/src/utils/apiFunctions.ts#L222)*
 
 **Parameters:**
 
@@ -282,7 +282,7 @@ ___
 
 ▸ **updateQuery**(`req`: any, `primaryKey`: any): *any*
 
-*Defined in [utils/apiFunctions.ts:103](https://github.com/edmundpf/mongoose-auto-api-rest/blob/8bc98fa/src/utils/apiFunctions.ts#L103)*
+*Defined in [utils/apiFunctions.ts:103](https://github.com/edmundpf/mongoose-auto-api-rest/blob/3e697bb/src/utils/apiFunctions.ts#L103)*
 
 **Parameters:**
 
@@ -299,7 +299,7 @@ ___
 
 ▸ **userNotFound**(`res`: any): *any*
 
-*Defined in [utils/apiFunctions.ts:198](https://github.com/edmundpf/mongoose-auto-api-rest/blob/8bc98fa/src/utils/apiFunctions.ts#L198)*
+*Defined in [utils/apiFunctions.ts:198](https://github.com/edmundpf/mongoose-auto-api-rest/blob/3e697bb/src/utils/apiFunctions.ts#L198)*
 
 **Parameters:**
 
@@ -315,7 +315,7 @@ ___
 
 ▸ **verifyToken**(`req`: any, `res`: any, `next`: any): *Promise‹any›*
 
-*Defined in [utils/apiFunctions.ts:242](https://github.com/edmundpf/mongoose-auto-api-rest/blob/8bc98fa/src/utils/apiFunctions.ts#L242)*
+*Defined in [utils/apiFunctions.ts:242](https://github.com/edmundpf/mongoose-auto-api-rest/blob/3e697bb/src/utils/apiFunctions.ts#L242)*
 
 **Parameters:**
 

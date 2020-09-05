@@ -30,7 +30,7 @@
 
 • **app**: *any* = express()
 
-*Defined in [index.ts:50](https://github.com/edmundpf/mongoose-auto-api-rest/blob/8bc98fa/src/index.ts#L50)*
+*Defined in [index.ts:50](https://github.com/edmundpf/mongoose-auto-api-rest/blob/3e697bb/src/index.ts#L50)*
 
 ___
 
@@ -40,7 +40,7 @@ ___
 	? require('../../../appConfig.json')
 	: require('./data/defaultConfig.json')
 
-*Defined in [index.ts:34](https://github.com/edmundpf/mongoose-auto-api-rest/blob/8bc98fa/src/index.ts#L34)*
+*Defined in [index.ts:34](https://github.com/edmundpf/mongoose-auto-api-rest/blob/3e697bb/src/index.ts#L34)*
 
 ___
 
@@ -50,7 +50,7 @@ ___
 		? process.env.WEB_PORT || config.webPort
 		: config.webPort + 10
 
-*Defined in [index.ts:41](https://github.com/edmundpf/mongoose-auto-api-rest/blob/8bc98fa/src/index.ts#L41)*
+*Defined in [index.ts:41](https://github.com/edmundpf/mongoose-auto-api-rest/blob/3e697bb/src/index.ts#L41)*
 
 ___
 
@@ -58,7 +58,7 @@ ___
 
 • **databaseName**: *any*
 
-*Defined in [index.ts:46](https://github.com/edmundpf/mongoose-auto-api-rest/blob/8bc98fa/src/index.ts#L46)*
+*Defined in [index.ts:46](https://github.com/edmundpf/mongoose-auto-api-rest/blob/3e697bb/src/index.ts#L46)*
 
 ___
 
@@ -66,7 +66,7 @@ ___
 
 • **mongoosePort**: *any*
 
-*Defined in [index.ts:45](https://github.com/edmundpf/mongoose-auto-api-rest/blob/8bc98fa/src/index.ts#L45)*
+*Defined in [index.ts:45](https://github.com/edmundpf/mongoose-auto-api-rest/blob/3e697bb/src/index.ts#L45)*
 
 ___
 
@@ -74,7 +74,7 @@ ___
 
 • **secretKey**: *any* = models.secretKey.model
 
-*Defined in [index.ts:48](https://github.com/edmundpf/mongoose-auto-api-rest/blob/8bc98fa/src/index.ts#L48)*
+*Defined in [index.ts:48](https://github.com/edmundpf/mongoose-auto-api-rest/blob/3e697bb/src/index.ts#L48)*
 
 ___
 
@@ -82,7 +82,7 @@ ___
 
 • **serverAddress**: *any* = null
 
-*Defined in [index.ts:49](https://github.com/edmundpf/mongoose-auto-api-rest/blob/8bc98fa/src/index.ts#L49)*
+*Defined in [index.ts:49](https://github.com/edmundpf/mongoose-auto-api-rest/blob/3e697bb/src/index.ts#L49)*
 
 ___
 
@@ -92,7 +92,7 @@ ___
 		? process.env.PORT || config.serverPort
 		: config.serverPort + 10
 
-*Defined in [index.ts:37](https://github.com/edmundpf/mongoose-auto-api-rest/blob/8bc98fa/src/index.ts#L37)*
+*Defined in [index.ts:37](https://github.com/edmundpf/mongoose-auto-api-rest/blob/3e697bb/src/index.ts#L37)*
 
 ___
 
@@ -100,7 +100,7 @@ ___
 
 • **userAuth**: *any* = models.userAuth.model
 
-*Defined in [index.ts:47](https://github.com/edmundpf/mongoose-auto-api-rest/blob/8bc98fa/src/index.ts#L47)*
+*Defined in [index.ts:47](https://github.com/edmundpf/mongoose-auto-api-rest/blob/3e697bb/src/index.ts#L47)*
 
 ## Functions
 
@@ -108,7 +108,7 @@ ___
 
 ▸ **init**(): *Promise‹any›*
 
-*Defined in [index.ts:83](https://github.com/edmundpf/mongoose-auto-api-rest/blob/8bc98fa/src/index.ts#L83)*
+*Defined in [index.ts:83](https://github.com/edmundpf/mongoose-auto-api-rest/blob/3e697bb/src/index.ts#L83)*
 
 **Returns:** *Promise‹any›*
 
@@ -118,7 +118,7 @@ ___
 
 ▸ **mongooseConnect**(): *Promise‹any›*
 
-*Defined in [index.ts:54](https://github.com/edmundpf/mongoose-auto-api-rest/blob/8bc98fa/src/index.ts#L54)*
+*Defined in [index.ts:54](https://github.com/edmundpf/mongoose-auto-api-rest/blob/3e697bb/src/index.ts#L54)*
 
 **Returns:** *Promise‹any›*
 
@@ -128,7 +128,7 @@ ___
 
 ▸ **serverStarted**(): *any*
 
-*Defined in [index.ts:73](https://github.com/edmundpf/mongoose-auto-api-rest/blob/8bc98fa/src/index.ts#L73)*
+*Defined in [index.ts:73](https://github.com/edmundpf/mongoose-auto-api-rest/blob/3e697bb/src/index.ts#L73)*
 
 **Returns:** *any*
 
@@ -138,7 +138,7 @@ ___
 
 ▸ **start**(): *Promise‹any›*
 
-*Defined in [index.ts:619](https://github.com/edmundpf/mongoose-auto-api-rest/blob/8bc98fa/src/index.ts#L619)*
+*Defined in [index.ts:619](https://github.com/edmundpf/mongoose-auto-api-rest/blob/3e697bb/src/index.ts#L619)*
 
 **Returns:** *Promise‹any›*
 
@@ -148,6 +148,6 @@ ___
 
 ▸ **startServer**(): *any*
 
-*Defined in [index.ts:94](https://github.com/edmundpf/mongoose-auto-api-rest/blob/8bc98fa/src/index.ts#L94)*
+*Defined in [index.ts:94](https://github.com/edmundpf/mongoose-auto-api-rest/blob/3e697bb/src/index.ts#L94)*
 
 **Returns:** *any*
