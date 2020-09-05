@@ -162,263 +162,188 @@ const startServer = () => {
 		p.warning('Insecure server starting', { log: false })
 		app.listen(serverPort, serverStarted)
 	}
-}
 
-//: All Routes
+	//: All Routes
 
-app.all(
-	`/:path(${Object.keys(appRoutes).join('|')})/:method(${normalMethods.join(
-		'|'
-	)})`,
-	verifyToken,
-	async (req, res) => {
-		let field, sortArgs
-		const modelInfo = appRoutes[req.params.path]
-		const { model } = modelInfo
-		const { primaryKey } = modelInfo
+	app.all(
+		`/:path(${Object.keys(appRoutes).join('|')})/:method(${normalMethods.join(
+			'|'
+		)})`,
+		verifyToken,
+		async (req, res) => {
+			let field, sortArgs
+			const modelInfo = appRoutes[req.params.path]
+			const { model } = modelInfo
+			const { primaryKey } = modelInfo
 
-		//: Format Sub-Document fields
+			//: Format Sub-Document fields
 
-		if (['update', 'insert'].includes(req.params.method)) {
-			for (field of modelInfo.subDocFields) {
-				if (typeof req.query[field] === 'string') {
-					req.query[field] = JSON.parse(req.query[field])
-				}
-			}
-		}
-
-		//: Insert
-
-		if (req.params.method === 'insert') {
-			return await responseFormat(
-				model.create.bind(model),
-				[req.query],
-				req,
-				res
-			)
-
-			//: Update
-		} else if (req.params.method === 'update') {
-			return await responseFormat(
-				model.updateOne.bind(model),
-				[
-					{
-						[primaryKey]: req.query[primaryKey],
-					},
-					updateQuery(req, primaryKey),
-				],
-				req,
-				res
-			)
-
-			//: Delete
-		} else if (req.params.method === 'delete') {
-			return await responseFormat(
-				model.deleteOne.bind(model),
-				[
-					{
-						[primaryKey]: req.query[primaryKey],
-					},
-				],
-				req,
-				res
-			)
-
-			//: Delete All
-		} else if (req.params.method === 'delete_all') {
-			return await responseFormat(model.deleteMany.bind(model), [{}], req, res)
-
-			//: Get
-		} else if (req.params.method === 'get') {
-			return await responseFormat(
-				model.find.bind(model),
-				[
-					{
-						[primaryKey]: req.query[primaryKey],
-					},
-				],
-				req,
-				res
-			)
-
-			//: Get All
-		} else if (req.params.method === 'get_all') {
-			sortArgs = parseDataSort(req.query, false)
-
-			return await responseFormat(
-				model.find.bind(model),
-				[{}, null, sortArgs],
-				req,
-				res
-			)
-
-			//: Find
-		} else if (req.params.method === 'find') {
-			let aggArgs
-			sortArgs = parseDataSort(req.query, true)
-
-			if (
-				req.query.local_field != null &&
-				req.query.from != null &&
-				req.query.foreign_field != null &&
-				req.query.as != null
-			) {
-				const lookup = {
-					$lookup: {
-						from: req.query.from,
-						localField: req.query.local_field,
-						foreignField: req.query.foreign_field,
-						as: req.query.as,
-					},
-				}
-				if (modelInfo.listFields.includes(req.query.local_field)) {
-					aggArgs = [parseQuery(model, req.query.where), lookup]
-				} else {
-					const unwind = { $unwind: `$${req.query.as}` }
-					aggArgs = [
-						parseQuery(model, req.query.where),
-						lookup,
-						unwind,
-						...sortArgs,
-					]
-				}
-			} else {
-				aggArgs = [parseQuery(model, req.query.where), ...sortArgs]
-			}
-
-			return await responseFormat(
-				model.aggregate.bind(model),
-				aggArgs,
-				req,
-				res,
-				false
-			)
-
-			//: Get Schema Info
-		} else if (req.params.method === 'schema') {
-			return await responseFormat(schemaAsync, [modelInfo], req, res)
-
-			//: Sterilize: removes fields not in schema, sets all query fields to specified value for all docs
-		} else if (req.params.method === 'sterilize') {
-			const setDict = {}
-			const unsetDict = {}
-			const normalDict = {}
-			const mongoFields = ['_id', 'createdAt', 'updatedAt', 'uid', '__v']
-			const allFields = [...mongoFields, ...modelInfo.allFields]
-			const { listFields } = modelInfo
-			const records: Array<any> = await model.find({}).lean()
-			for (const record of records) {
-				for (const key in record) {
-					if (
-						!allFields.includes(key) &&
-						!Object.keys(unsetDict).includes(key)
-					) {
-						unsetDict[key] = 1
+			if (['update', 'insert'].includes(req.params.method)) {
+				for (field of modelInfo.subDocFields) {
+					if (typeof req.query[field] === 'string') {
+						req.query[field] = JSON.parse(req.query[field])
 					}
 				}
 			}
-			for (field in req.query) {
-				const val = req.query[field]
-				if (listFields.includes(field)) {
-					setDict[field] = val.split(',')
-				} else {
-					if (field !== 'auth_token') {
-						normalDict[field] = val
+
+			//: Insert
+
+			if (req.params.method === 'insert') {
+				return await responseFormat(
+					model.create.bind(model),
+					[req.query],
+					req,
+					res
+				)
+
+				//: Update
+			} else if (req.params.method === 'update') {
+				return await responseFormat(
+					model.updateOne.bind(model),
+					[
+						{
+							[primaryKey]: req.query[primaryKey],
+						},
+						updateQuery(req, primaryKey),
+					],
+					req,
+					res
+				)
+
+				//: Delete
+			} else if (req.params.method === 'delete') {
+				return await responseFormat(
+					model.deleteOne.bind(model),
+					[
+						{
+							[primaryKey]: req.query[primaryKey],
+						},
+					],
+					req,
+					res
+				)
+
+				//: Delete All
+			} else if (req.params.method === 'delete_all') {
+				return await responseFormat(
+					model.deleteMany.bind(model),
+					[{}],
+					req,
+					res
+				)
+
+				//: Get
+			} else if (req.params.method === 'get') {
+				return await responseFormat(
+					model.find.bind(model),
+					[
+						{
+							[primaryKey]: req.query[primaryKey],
+						},
+					],
+					req,
+					res
+				)
+
+				//: Get All
+			} else if (req.params.method === 'get_all') {
+				sortArgs = parseDataSort(req.query, false)
+
+				return await responseFormat(
+					model.find.bind(model),
+					[{}, null, sortArgs],
+					req,
+					res
+				)
+
+				//: Find
+			} else if (req.params.method === 'find') {
+				let aggArgs
+				sortArgs = parseDataSort(req.query, true)
+
+				if (
+					req.query.local_field != null &&
+					req.query.from != null &&
+					req.query.foreign_field != null &&
+					req.query.as != null
+				) {
+					const lookup = {
+						$lookup: {
+							from: req.query.from,
+							localField: req.query.local_field,
+							foreignField: req.query.foreign_field,
+							as: req.query.as,
+						},
 					}
-				}
-			}
-			await model.collection.dropIndexes()
-			return await responseFormat(
-				model.updateMany.bind(model),
-				[
-					{},
-					{
-						...normalDict,
-						$set: setDict,
-						$unset: unsetDict,
-					},
-					{
-						multi: true,
-						strict: false,
-					},
-				],
-				req,
-				res
-			)
-		}
-	}
-)
-
-//: List Routes
-
-app.all(
-	`/:path(${Object.keys(listRoutes).join('|')})/:method(${listMethods.join(
-		'|'
-	)})`,
-	verifyToken,
-	async (req, res) => {
-		const { model } = appRoutes[req.params.path]
-		const { primaryKey } = appRoutes[req.params.path]
-
-		if (['push', 'push_unique', 'set'].includes(req.params.method)) {
-			const updateDict = {}
-			for (const key in req.query) {
-				if (![primaryKey, 'auth_token', 'refresh_token'].includes(key)) {
-					if (req.params.method !== 'set') {
-						updateDict[key] = { $each: req.query[key].split(',') }
+					if (modelInfo.listFields.includes(req.query.local_field)) {
+						aggArgs = [parseQuery(model, req.query.where), lookup]
 					} else {
-						if (req.query[key] !== '[]') {
-							updateDict[key] = req.query[key].split(',')
-						} else {
-							updateDict[key] = []
+						const unwind = { $unwind: `$${req.query.as}` }
+						aggArgs = [
+							parseQuery(model, req.query.where),
+							lookup,
+							unwind,
+							...sortArgs,
+						]
+					}
+				} else {
+					aggArgs = [parseQuery(model, req.query.where), ...sortArgs]
+				}
+
+				return await responseFormat(
+					model.aggregate.bind(model),
+					aggArgs,
+					req,
+					res,
+					false
+				)
+
+				//: Get Schema Info
+			} else if (req.params.method === 'schema') {
+				return await responseFormat(schemaAsync, [modelInfo], req, res)
+
+				//: Sterilize: removes fields not in schema, sets all query fields to specified value for all docs
+			} else if (req.params.method === 'sterilize') {
+				const setDict = {}
+				const unsetDict = {}
+				const normalDict = {}
+				const mongoFields = ['_id', 'createdAt', 'updatedAt', 'uid', '__v']
+				const allFields = [...mongoFields, ...modelInfo.allFields]
+				const { listFields } = modelInfo
+				const records: Array<any> = await model.find({}).lean()
+				for (const record of records) {
+					for (const key in record) {
+						if (
+							!allFields.includes(key) &&
+							!Object.keys(unsetDict).includes(key)
+						) {
+							unsetDict[key] = 1
 						}
 					}
 				}
-			}
-
-			//: Push
-
-			if (req.params.method === 'push') {
+				for (field in req.query) {
+					const val = req.query[field]
+					if (listFields.includes(field)) {
+						setDict[field] = val.split(',')
+					} else {
+						if (field !== 'auth_token') {
+							normalDict[field] = val
+						}
+					}
+				}
+				await model.collection.dropIndexes()
 				return await responseFormat(
-					model.updateOne.bind(model),
+					model.updateMany.bind(model),
 					[
+						{},
 						{
-							[primaryKey]: req.query[primaryKey],
+							...normalDict,
+							$set: setDict,
+							$unset: unsetDict,
 						},
 						{
-							$push: updateDict,
-						},
-					],
-					req,
-					res
-				)
-
-				//: Push Unique
-			} else if (req.params.method === 'push_unique') {
-				return await responseFormat(
-					model.updateOne.bind(model),
-					[
-						{
-							[primaryKey]: req.query[primaryKey],
-						},
-						{
-							$addToSet: updateDict,
-						},
-					],
-					req,
-					res
-				)
-
-				//: Set
-			} else if (req.params.method === 'set') {
-				return await responseFormat(
-					model.updateOne.bind(model),
-					[
-						{
-							[primaryKey]: req.query[primaryKey],
-						},
-						{
-							$set: updateDict,
+							multi: true,
+							strict: false,
 						},
 					],
 					req,
@@ -426,194 +351,277 @@ app.all(
 				)
 			}
 		}
-	}
-)
+	)
 
-//: Login
+	//: List Routes
 
-app.all('/login', async (req, res) => {
-	try {
-		const user = await userAuth.findOne({
-			username: req.query.username,
-		})
-		if (user) {
-			const passMatch = await bcrypt.compare(req.query.password, user.password)
-			if (!passMatch) {
-				return incorrectUserOrPass(res)
+	app.all(
+		`/:path(${Object.keys(listRoutes).join('|')})/:method(${listMethods.join(
+			'|'
+		)})`,
+		verifyToken,
+		async (req, res) => {
+			const { model } = appRoutes[req.params.path]
+			const { primaryKey } = appRoutes[req.params.path]
+
+			if (['push', 'push_unique', 'set'].includes(req.params.method)) {
+				const updateDict = {}
+				for (const key in req.query) {
+					if (![primaryKey, 'auth_token', 'refresh_token'].includes(key)) {
+						if (req.params.method !== 'set') {
+							updateDict[key] = { $each: req.query[key].split(',') }
+						} else {
+							if (req.query[key] !== '[]') {
+								updateDict[key] = req.query[key].split(',')
+							} else {
+								updateDict[key] = []
+							}
+						}
+					}
+				}
+
+				//: Push
+
+				if (req.params.method === 'push') {
+					return await responseFormat(
+						model.updateOne.bind(model),
+						[
+							{
+								[primaryKey]: req.query[primaryKey],
+							},
+							{
+								$push: updateDict,
+							},
+						],
+						req,
+						res
+					)
+
+					//: Push Unique
+				} else if (req.params.method === 'push_unique') {
+					return await responseFormat(
+						model.updateOne.bind(model),
+						[
+							{
+								[primaryKey]: req.query[primaryKey],
+							},
+							{
+								$addToSet: updateDict,
+							},
+						],
+						req,
+						res
+					)
+
+					//: Set
+				} else if (req.params.method === 'set') {
+					return await responseFormat(
+						model.updateOne.bind(model),
+						[
+							{
+								[primaryKey]: req.query[primaryKey],
+							},
+							{
+								$set: updateDict,
+							},
+						],
+						req,
+						res
+					)
+				}
+			}
+		}
+	)
+
+	//: Login
+
+	app.all('/login', async (req, res) => {
+		try {
+			const user = await userAuth.findOne({
+				username: req.query.username,
+			})
+			if (user) {
+				const passMatch = await bcrypt.compare(
+					req.query.password,
+					user.password
+				)
+				if (!passMatch) {
+					return incorrectUserOrPass(res)
+				} else {
+					const token = signToken(user, app.locals.jwtKeys.cur)
+					return res.json({
+						status: 'ok',
+						response: token,
+					})
+				}
 			} else {
-				const token = signToken(user, app.locals.jwtKeys.cur)
-				return res.json({
-					status: 'ok',
-					response: token,
+				return userNotFound(res)
+			}
+		} catch (error) {
+			return res.status(500).json({
+				status: 'error',
+				response: errorObj(error),
+			})
+		}
+	})
+
+	//: Edit Secret Key
+
+	app.all('/:path(update_secret_key)', verifyToken, async (req, res) => {
+		let response
+		try {
+			const isValid = allowedSecretKey(req)
+			if (isValid !== true) {
+				return res.status(401).json(isValid)
+			}
+
+			const key = await secretKey.find({})
+			if (key.length === 0) {
+				response = await secretKey.create(req.query)
+			} else {
+				response = await secretKey.updateOne(
+					{
+						key: key[key.length - 1].key,
+					},
+					req.query
+				)
+			}
+			return res.json({
+				status: 'ok',
+				response,
+			})
+		} catch (error) {
+			return res.status(500).json({
+				status: 'error',
+				response: errorObj(error),
+			})
+		}
+	})
+
+	//: Sign Up
+
+	app.all('/:path(signup)', verifyToken, async (req, res) => {
+		let response
+		try {
+			if (req.query.secret_key != null) {
+				const key = await secretKey.find({})
+				if (key.length > 0) {
+					const key_match = await bcrypt.compare(
+						req.query.secret_key,
+						key[key.length - 1].key
+					)
+					if (!key_match) {
+						return incorrectSecretKey(res)
+					}
+				}
+
+				const isValid = allowedPassword(req)
+				if (isValid !== true) {
+					return res.status(401).json(isValid)
+				}
+				response = await userAuth.create(req.query)
+
+				if (req.query.username === response.username) {
+					const token = signToken(response, app.locals.jwtKeys.cur)
+					return res.json({
+						status: 'ok',
+						response: token,
+					})
+				} else {
+					return res.status(401).json({
+						status: 'error',
+						response,
+					})
+				}
+			} else {
+				return res.status(401).json({
+					status: 'error',
+					response: {
+						message: 'Not Authorized.',
+					},
 				})
 			}
-		} else {
-			return userNotFound(res)
+		} catch (error) {
+			return res.status(500).json({
+				status: 'error',
+				response: errorObj(error),
+			})
 		}
-	} catch (error) {
-		return res.status(500).json({
-			status: 'error',
-			response: errorObj(error),
-		})
-	}
-})
+	})
 
-//: Edit Secret Key
+	//: Update Password
 
-app.all('/:path(update_secret_key)', verifyToken, async (req, res) => {
-	let response
-	try {
-		const isValid = allowedSecretKey(req)
-		if (isValid !== true) {
-			return res.status(401).json(isValid)
-		}
+	app.all('/update_password', async (req, res) => {
+		try {
+			const user = await userAuth.findOne({
+				username: req.query.username,
+			})
 
-		const key = await secretKey.find({})
-		if (key.length === 0) {
-			response = await secretKey.create(req.query)
-		} else {
-			response = await secretKey.updateOne(
-				{
-					key: key[key.length - 1].key,
-				},
-				req.query
-			)
-		}
-		return res.json({
-			status: 'ok',
-			response,
-		})
-	} catch (error) {
-		return res.status(500).json({
-			status: 'error',
-			response: errorObj(error),
-		})
-	}
-})
-
-//: Sign Up
-
-app.all('/:path(signup)', verifyToken, async (req, res) => {
-	let response
-	try {
-		if (req.query.secret_key != null) {
-			const key = await secretKey.find({})
-			if (key.length > 0) {
-				const key_match = await bcrypt.compare(
-					req.query.secret_key,
-					key[key.length - 1].key
+			if (user && req.query.current_password != null) {
+				const passMatch = await bcrypt.compare(
+					req.query.current_password,
+					user.password
 				)
-				if (!key_match) {
-					return incorrectSecretKey(res)
+				if (!passMatch) {
+					return incorrectUserOrPass(res)
 				}
+			} else if (!user) {
+				return userNotFound(res)
+			} else if (req.query.current_password == null) {
+				return noCurrentPass(res)
 			}
 
 			const isValid = allowedPassword(req)
 			if (isValid !== true) {
 				return res.status(401).json(isValid)
 			}
-			response = await userAuth.create(req.query)
+			const passUpdate = await userAuth.updateOne(
+				{ username: req.query.username },
+				objOmit(req.query, ['username'])
+			)
 
-			if (req.query.username === response.username) {
-				const token = signToken(response, app.locals.jwtKeys.cur)
+			if (passUpdate.nModified === 1) {
 				return res.json({
 					status: 'ok',
-					response: token,
+					response: {
+						message: 'Password updated.',
+					},
 				})
 			} else {
 				return res.status(401).json({
 					status: 'error',
-					response,
+					response: passUpdate,
 				})
 			}
-		} else {
-			return res.status(401).json({
+		} catch (error) {
+			return res.status(500).json({
 				status: 'error',
-				response: {
-					message: 'Not Authorized.',
-				},
+				response: errorObj(error),
 			})
 		}
-	} catch (error) {
-		return res.status(500).json({
-			status: 'error',
-			response: errorObj(error),
-		})
-	}
-})
+	})
 
-//: Update Password
+	//: Verify Token
 
-app.all('/update_password', async (req, res) => {
-	try {
-		const user = await userAuth.findOne({
-			username: req.query.username,
-		})
-
-		if (user && req.query.current_password != null) {
-			const passMatch = await bcrypt.compare(
-				req.query.current_password,
-				user.password
-			)
-			if (!passMatch) {
-				return incorrectUserOrPass(res)
-			}
-		} else if (!user) {
-			return userNotFound(res)
-		} else if (req.query.current_password == null) {
-			return noCurrentPass(res)
-		}
-
-		const isValid = allowedPassword(req)
-		if (isValid !== true) {
-			return res.status(401).json(isValid)
-		}
-		const passUpdate = await userAuth.updateOne(
-			{ username: req.query.username },
-			objOmit(req.query, ['username'])
-		)
-
-		if (passUpdate.nModified === 1) {
+	app.all('/verify_token', verifyToken, (req, res) => {
+		if (res.locals.refresh_token != null) {
+			return res.json({
+				status: 'ok',
+				refresh_token: res.locals.refresh_token,
+				response: {
+					message: 'Token verified.',
+				},
+			})
+		} else {
 			return res.json({
 				status: 'ok',
 				response: {
-					message: 'Password updated.',
+					message: 'Token verified.',
 				},
 			})
-		} else {
-			return res.status(401).json({
-				status: 'error',
-				response: passUpdate,
-			})
 		}
-	} catch (error) {
-		return res.status(500).json({
-			status: 'error',
-			response: errorObj(error),
-		})
-	}
-})
-
-//: Verify Token
-
-app.all('/verify_token', verifyToken, (req, res) => {
-	if (res.locals.refresh_token != null) {
-		return res.json({
-			status: 'ok',
-			refresh_token: res.locals.refresh_token,
-			response: {
-				message: 'Token verified.',
-			},
-		})
-	} else {
-		return res.json({
-			status: 'ok',
-			response: {
-				message: 'Token verified.',
-			},
-		})
-	}
-})
+	})
+}
 
 //: Main
 

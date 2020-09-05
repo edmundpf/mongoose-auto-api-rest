@@ -148,363 +148,363 @@ const startServer = () => {
         print_tools_js_1.default.warning('Insecure server starting', { log: false });
         app.listen(serverPort, serverStarted);
     }
-};
-//: All Routes
-app.all(`/:path(${Object.keys(routeWrapper_2.appRoutes).join('|')})/:method(${routeWrapper_4.normalMethods.join('|')})`, apiFunctions_14.verifyToken, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    let field, sortArgs;
-    const modelInfo = routeWrapper_2.appRoutes[req.params.path];
-    const { model } = modelInfo;
-    const { primaryKey } = modelInfo;
-    //: Format Sub-Document fields
-    if (['update', 'insert'].includes(req.params.method)) {
-        for (field of modelInfo.subDocFields) {
-            if (typeof req.query[field] === 'string') {
-                req.query[field] = JSON.parse(req.query[field]);
+    //: All Routes
+    app.all(`/:path(${Object.keys(routeWrapper_2.appRoutes).join('|')})/:method(${routeWrapper_4.normalMethods.join('|')})`, apiFunctions_14.verifyToken, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+        let field, sortArgs;
+        const modelInfo = routeWrapper_2.appRoutes[req.params.path];
+        const { model } = modelInfo;
+        const { primaryKey } = modelInfo;
+        //: Format Sub-Document fields
+        if (['update', 'insert'].includes(req.params.method)) {
+            for (field of modelInfo.subDocFields) {
+                if (typeof req.query[field] === 'string') {
+                    req.query[field] = JSON.parse(req.query[field]);
+                }
             }
         }
-    }
-    //: Insert
-    if (req.params.method === 'insert') {
-        return yield apiFunctions_8.responseFormat(model.create.bind(model), [req.query], req, res);
-        //: Update
-    }
-    else if (req.params.method === 'update') {
-        return yield apiFunctions_8.responseFormat(model.updateOne.bind(model), [
-            {
-                [primaryKey]: req.query[primaryKey],
-            },
-            apiFunctions_5.updateQuery(req, primaryKey),
-        ], req, res);
-        //: Delete
-    }
-    else if (req.params.method === 'delete') {
-        return yield apiFunctions_8.responseFormat(model.deleteOne.bind(model), [
-            {
-                [primaryKey]: req.query[primaryKey],
-            },
-        ], req, res);
-        //: Delete All
-    }
-    else if (req.params.method === 'delete_all') {
-        return yield apiFunctions_8.responseFormat(model.deleteMany.bind(model), [{}], req, res);
-        //: Get
-    }
-    else if (req.params.method === 'get') {
-        return yield apiFunctions_8.responseFormat(model.find.bind(model), [
-            {
-                [primaryKey]: req.query[primaryKey],
-            },
-        ], req, res);
-        //: Get All
-    }
-    else if (req.params.method === 'get_all') {
-        sortArgs = apiFunctions_3.parseDataSort(req.query, false);
-        return yield apiFunctions_8.responseFormat(model.find.bind(model), [{}, null, sortArgs], req, res);
-        //: Find
-    }
-    else if (req.params.method === 'find') {
-        let aggArgs;
-        sortArgs = apiFunctions_3.parseDataSort(req.query, true);
-        if (req.query.local_field != null &&
-            req.query.from != null &&
-            req.query.foreign_field != null &&
-            req.query.as != null) {
-            const lookup = {
-                $lookup: {
-                    from: req.query.from,
-                    localField: req.query.local_field,
-                    foreignField: req.query.foreign_field,
-                    as: req.query.as,
+        //: Insert
+        if (req.params.method === 'insert') {
+            return yield apiFunctions_8.responseFormat(model.create.bind(model), [req.query], req, res);
+            //: Update
+        }
+        else if (req.params.method === 'update') {
+            return yield apiFunctions_8.responseFormat(model.updateOne.bind(model), [
+                {
+                    [primaryKey]: req.query[primaryKey],
                 },
-            };
-            if (modelInfo.listFields.includes(req.query.local_field)) {
-                aggArgs = [parseQuery_1.default(model, req.query.where), lookup];
-            }
-            else {
-                const unwind = { $unwind: `$${req.query.as}` };
-                aggArgs = [
-                    parseQuery_1.default(model, req.query.where),
-                    lookup,
-                    unwind,
-                    ...sortArgs,
-                ];
-            }
+                apiFunctions_5.updateQuery(req, primaryKey),
+            ], req, res);
+            //: Delete
         }
-        else {
-            aggArgs = [parseQuery_1.default(model, req.query.where), ...sortArgs];
+        else if (req.params.method === 'delete') {
+            return yield apiFunctions_8.responseFormat(model.deleteOne.bind(model), [
+                {
+                    [primaryKey]: req.query[primaryKey],
+                },
+            ], req, res);
+            //: Delete All
         }
-        return yield apiFunctions_8.responseFormat(model.aggregate.bind(model), aggArgs, req, res, false);
-        //: Get Schema Info
-    }
-    else if (req.params.method === 'schema') {
-        return yield apiFunctions_8.responseFormat(apiFunctions_4.schemaAsync, [modelInfo], req, res);
-        //: Sterilize: removes fields not in schema, sets all query fields to specified value for all docs
-    }
-    else if (req.params.method === 'sterilize') {
-        const setDict = {};
-        const unsetDict = {};
-        const normalDict = {};
-        const mongoFields = ['_id', 'createdAt', 'updatedAt', 'uid', '__v'];
-        const allFields = [...mongoFields, ...modelInfo.allFields];
-        const { listFields } = modelInfo;
-        const records = yield model.find({}).lean();
-        for (const record of records) {
-            for (const key in record) {
-                if (!allFields.includes(key) &&
-                    !Object.keys(unsetDict).includes(key)) {
-                    unsetDict[key] = 1;
-                }
-            }
+        else if (req.params.method === 'delete_all') {
+            return yield apiFunctions_8.responseFormat(model.deleteMany.bind(model), [{}], req, res);
+            //: Get
         }
-        for (field in req.query) {
-            const val = req.query[field];
-            if (listFields.includes(field)) {
-                setDict[field] = val.split(',');
-            }
-            else {
-                if (field !== 'auth_token') {
-                    normalDict[field] = val;
-                }
-            }
+        else if (req.params.method === 'get') {
+            return yield apiFunctions_8.responseFormat(model.find.bind(model), [
+                {
+                    [primaryKey]: req.query[primaryKey],
+                },
+            ], req, res);
+            //: Get All
         }
-        yield model.collection.dropIndexes();
-        return yield apiFunctions_8.responseFormat(model.updateMany.bind(model), [
-            {},
-            Object.assign(Object.assign({}, normalDict), { $set: setDict, $unset: unsetDict }),
-            {
-                multi: true,
-                strict: false,
-            },
-        ], req, res);
-    }
-}));
-//: List Routes
-app.all(`/:path(${Object.keys(routeWrapper_1.listRoutes).join('|')})/:method(${routeWrapper_3.listMethods.join('|')})`, apiFunctions_14.verifyToken, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const { model } = routeWrapper_2.appRoutes[req.params.path];
-    const { primaryKey } = routeWrapper_2.appRoutes[req.params.path];
-    if (['push', 'push_unique', 'set'].includes(req.params.method)) {
-        const updateDict = {};
-        for (const key in req.query) {
-            if (![primaryKey, 'auth_token', 'refresh_token'].includes(key)) {
-                if (req.params.method !== 'set') {
-                    updateDict[key] = { $each: req.query[key].split(',') };
+        else if (req.params.method === 'get_all') {
+            sortArgs = apiFunctions_3.parseDataSort(req.query, false);
+            return yield apiFunctions_8.responseFormat(model.find.bind(model), [{}, null, sortArgs], req, res);
+            //: Find
+        }
+        else if (req.params.method === 'find') {
+            let aggArgs;
+            sortArgs = apiFunctions_3.parseDataSort(req.query, true);
+            if (req.query.local_field != null &&
+                req.query.from != null &&
+                req.query.foreign_field != null &&
+                req.query.as != null) {
+                const lookup = {
+                    $lookup: {
+                        from: req.query.from,
+                        localField: req.query.local_field,
+                        foreignField: req.query.foreign_field,
+                        as: req.query.as,
+                    },
+                };
+                if (modelInfo.listFields.includes(req.query.local_field)) {
+                    aggArgs = [parseQuery_1.default(model, req.query.where), lookup];
                 }
                 else {
-                    if (req.query[key] !== '[]') {
-                        updateDict[key] = req.query[key].split(',');
-                    }
-                    else {
-                        updateDict[key] = [];
+                    const unwind = { $unwind: `$${req.query.as}` };
+                    aggArgs = [
+                        parseQuery_1.default(model, req.query.where),
+                        lookup,
+                        unwind,
+                        ...sortArgs,
+                    ];
+                }
+            }
+            else {
+                aggArgs = [parseQuery_1.default(model, req.query.where), ...sortArgs];
+            }
+            return yield apiFunctions_8.responseFormat(model.aggregate.bind(model), aggArgs, req, res, false);
+            //: Get Schema Info
+        }
+        else if (req.params.method === 'schema') {
+            return yield apiFunctions_8.responseFormat(apiFunctions_4.schemaAsync, [modelInfo], req, res);
+            //: Sterilize: removes fields not in schema, sets all query fields to specified value for all docs
+        }
+        else if (req.params.method === 'sterilize') {
+            const setDict = {};
+            const unsetDict = {};
+            const normalDict = {};
+            const mongoFields = ['_id', 'createdAt', 'updatedAt', 'uid', '__v'];
+            const allFields = [...mongoFields, ...modelInfo.allFields];
+            const { listFields } = modelInfo;
+            const records = yield model.find({}).lean();
+            for (const record of records) {
+                for (const key in record) {
+                    if (!allFields.includes(key) &&
+                        !Object.keys(unsetDict).includes(key)) {
+                        unsetDict[key] = 1;
                     }
                 }
             }
-        }
-        //: Push
-        if (req.params.method === 'push') {
-            return yield apiFunctions_8.responseFormat(model.updateOne.bind(model), [
+            for (field in req.query) {
+                const val = req.query[field];
+                if (listFields.includes(field)) {
+                    setDict[field] = val.split(',');
+                }
+                else {
+                    if (field !== 'auth_token') {
+                        normalDict[field] = val;
+                    }
+                }
+            }
+            yield model.collection.dropIndexes();
+            return yield apiFunctions_8.responseFormat(model.updateMany.bind(model), [
+                {},
+                Object.assign(Object.assign({}, normalDict), { $set: setDict, $unset: unsetDict }),
                 {
-                    [primaryKey]: req.query[primaryKey],
-                },
-                {
-                    $push: updateDict,
-                },
-            ], req, res);
-            //: Push Unique
-        }
-        else if (req.params.method === 'push_unique') {
-            return yield apiFunctions_8.responseFormat(model.updateOne.bind(model), [
-                {
-                    [primaryKey]: req.query[primaryKey],
-                },
-                {
-                    $addToSet: updateDict,
-                },
-            ], req, res);
-            //: Set
-        }
-        else if (req.params.method === 'set') {
-            return yield apiFunctions_8.responseFormat(model.updateOne.bind(model), [
-                {
-                    [primaryKey]: req.query[primaryKey],
-                },
-                {
-                    $set: updateDict,
+                    multi: true,
+                    strict: false,
                 },
             ], req, res);
         }
-    }
-}));
-//: Login
-app.all('/login', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    try {
-        const user = yield userAuth.findOne({
-            username: req.query.username,
-        });
-        if (user) {
-            const passMatch = yield bcrypt_1.default.compare(req.query.password, user.password);
-            if (!passMatch) {
-                return apiFunctions_10.incorrectUserOrPass(res);
+    }));
+    //: List Routes
+    app.all(`/:path(${Object.keys(routeWrapper_1.listRoutes).join('|')})/:method(${routeWrapper_3.listMethods.join('|')})`, apiFunctions_14.verifyToken, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+        const { model } = routeWrapper_2.appRoutes[req.params.path];
+        const { primaryKey } = routeWrapper_2.appRoutes[req.params.path];
+        if (['push', 'push_unique', 'set'].includes(req.params.method)) {
+            const updateDict = {};
+            for (const key in req.query) {
+                if (![primaryKey, 'auth_token', 'refresh_token'].includes(key)) {
+                    if (req.params.method !== 'set') {
+                        updateDict[key] = { $each: req.query[key].split(',') };
+                    }
+                    else {
+                        if (req.query[key] !== '[]') {
+                            updateDict[key] = req.query[key].split(',');
+                        }
+                        else {
+                            updateDict[key] = [];
+                        }
+                    }
+                }
+            }
+            //: Push
+            if (req.params.method === 'push') {
+                return yield apiFunctions_8.responseFormat(model.updateOne.bind(model), [
+                    {
+                        [primaryKey]: req.query[primaryKey],
+                    },
+                    {
+                        $push: updateDict,
+                    },
+                ], req, res);
+                //: Push Unique
+            }
+            else if (req.params.method === 'push_unique') {
+                return yield apiFunctions_8.responseFormat(model.updateOne.bind(model), [
+                    {
+                        [primaryKey]: req.query[primaryKey],
+                    },
+                    {
+                        $addToSet: updateDict,
+                    },
+                ], req, res);
+                //: Set
+            }
+            else if (req.params.method === 'set') {
+                return yield apiFunctions_8.responseFormat(model.updateOne.bind(model), [
+                    {
+                        [primaryKey]: req.query[primaryKey],
+                    },
+                    {
+                        $set: updateDict,
+                    },
+                ], req, res);
+            }
+        }
+    }));
+    //: Login
+    app.all('/login', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+        try {
+            const user = yield userAuth.findOne({
+                username: req.query.username,
+            });
+            if (user) {
+                const passMatch = yield bcrypt_1.default.compare(req.query.password, user.password);
+                if (!passMatch) {
+                    return apiFunctions_10.incorrectUserOrPass(res);
+                }
+                else {
+                    const token = apiFunctions_13.signToken(user, app.locals.jwtKeys.cur);
+                    return res.json({
+                        status: 'ok',
+                        response: token,
+                    });
+                }
             }
             else {
-                const token = apiFunctions_13.signToken(user, app.locals.jwtKeys.cur);
-                return res.json({
-                    status: 'ok',
-                    response: token,
+                return apiFunctions_11.userNotFound(res);
+            }
+        }
+        catch (error) {
+            return res.status(500).json({
+                status: 'error',
+                response: apiFunctions_2.errorObj(error),
+            });
+        }
+    }));
+    //: Edit Secret Key
+    app.all('/:path(update_secret_key)', apiFunctions_14.verifyToken, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+        let response;
+        try {
+            const isValid = apiFunctions_7.allowedSecretKey(req);
+            if (isValid !== true) {
+                return res.status(401).json(isValid);
+            }
+            const key = yield secretKey.find({});
+            if (key.length === 0) {
+                response = yield secretKey.create(req.query);
+            }
+            else {
+                response = yield secretKey.updateOne({
+                    key: key[key.length - 1].key,
+                }, req.query);
+            }
+            return res.json({
+                status: 'ok',
+                response,
+            });
+        }
+        catch (error) {
+            return res.status(500).json({
+                status: 'error',
+                response: apiFunctions_2.errorObj(error),
+            });
+        }
+    }));
+    //: Sign Up
+    app.all('/:path(signup)', apiFunctions_14.verifyToken, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+        let response;
+        try {
+            if (req.query.secret_key != null) {
+                const key = yield secretKey.find({});
+                if (key.length > 0) {
+                    const key_match = yield bcrypt_1.default.compare(req.query.secret_key, key[key.length - 1].key);
+                    if (!key_match) {
+                        return apiFunctions_9.incorrectSecretKey(res);
+                    }
+                }
+                const isValid = apiFunctions_6.allowedPassword(req);
+                if (isValid !== true) {
+                    return res.status(401).json(isValid);
+                }
+                response = yield userAuth.create(req.query);
+                if (req.query.username === response.username) {
+                    const token = apiFunctions_13.signToken(response, app.locals.jwtKeys.cur);
+                    return res.json({
+                        status: 'ok',
+                        response: token,
+                    });
+                }
+                else {
+                    return res.status(401).json({
+                        status: 'error',
+                        response,
+                    });
+                }
+            }
+            else {
+                return res.status(401).json({
+                    status: 'error',
+                    response: {
+                        message: 'Not Authorized.',
+                    },
                 });
             }
         }
-        else {
-            return apiFunctions_11.userNotFound(res);
+        catch (error) {
+            return res.status(500).json({
+                status: 'error',
+                response: apiFunctions_2.errorObj(error),
+            });
         }
-    }
-    catch (error) {
-        return res.status(500).json({
-            status: 'error',
-            response: apiFunctions_2.errorObj(error),
-        });
-    }
-}));
-//: Edit Secret Key
-app.all('/:path(update_secret_key)', apiFunctions_14.verifyToken, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    let response;
-    try {
-        const isValid = apiFunctions_7.allowedSecretKey(req);
-        if (isValid !== true) {
-            return res.status(401).json(isValid);
-        }
-        const key = yield secretKey.find({});
-        if (key.length === 0) {
-            response = yield secretKey.create(req.query);
-        }
-        else {
-            response = yield secretKey.updateOne({
-                key: key[key.length - 1].key,
-            }, req.query);
-        }
-        return res.json({
-            status: 'ok',
-            response,
-        });
-    }
-    catch (error) {
-        return res.status(500).json({
-            status: 'error',
-            response: apiFunctions_2.errorObj(error),
-        });
-    }
-}));
-//: Sign Up
-app.all('/:path(signup)', apiFunctions_14.verifyToken, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    let response;
-    try {
-        if (req.query.secret_key != null) {
-            const key = yield secretKey.find({});
-            if (key.length > 0) {
-                const key_match = yield bcrypt_1.default.compare(req.query.secret_key, key[key.length - 1].key);
-                if (!key_match) {
-                    return apiFunctions_9.incorrectSecretKey(res);
+    }));
+    //: Update Password
+    app.all('/update_password', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+        try {
+            const user = yield userAuth.findOne({
+                username: req.query.username,
+            });
+            if (user && req.query.current_password != null) {
+                const passMatch = yield bcrypt_1.default.compare(req.query.current_password, user.password);
+                if (!passMatch) {
+                    return apiFunctions_10.incorrectUserOrPass(res);
                 }
+            }
+            else if (!user) {
+                return apiFunctions_11.userNotFound(res);
+            }
+            else if (req.query.current_password == null) {
+                return apiFunctions_12.noCurrentPass(res);
             }
             const isValid = apiFunctions_6.allowedPassword(req);
             if (isValid !== true) {
                 return res.status(401).json(isValid);
             }
-            response = yield userAuth.create(req.query);
-            if (req.query.username === response.username) {
-                const token = apiFunctions_13.signToken(response, app.locals.jwtKeys.cur);
+            const passUpdate = yield userAuth.updateOne({ username: req.query.username }, apiFunctions_1.objOmit(req.query, ['username']));
+            if (passUpdate.nModified === 1) {
                 return res.json({
                     status: 'ok',
-                    response: token,
+                    response: {
+                        message: 'Password updated.',
+                    },
                 });
             }
             else {
                 return res.status(401).json({
                     status: 'error',
-                    response,
+                    response: passUpdate,
                 });
             }
         }
-        else {
-            return res.status(401).json({
+        catch (error) {
+            return res.status(500).json({
                 status: 'error',
+                response: apiFunctions_2.errorObj(error),
+            });
+        }
+    }));
+    //: Verify Token
+    app.all('/verify_token', apiFunctions_14.verifyToken, (req, res) => {
+        if (res.locals.refresh_token != null) {
+            return res.json({
+                status: 'ok',
+                refresh_token: res.locals.refresh_token,
                 response: {
-                    message: 'Not Authorized.',
+                    message: 'Token verified.',
                 },
             });
         }
-    }
-    catch (error) {
-        return res.status(500).json({
-            status: 'error',
-            response: apiFunctions_2.errorObj(error),
-        });
-    }
-}));
-//: Update Password
-app.all('/update_password', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    try {
-        const user = yield userAuth.findOne({
-            username: req.query.username,
-        });
-        if (user && req.query.current_password != null) {
-            const passMatch = yield bcrypt_1.default.compare(req.query.current_password, user.password);
-            if (!passMatch) {
-                return apiFunctions_10.incorrectUserOrPass(res);
-            }
-        }
-        else if (!user) {
-            return apiFunctions_11.userNotFound(res);
-        }
-        else if (req.query.current_password == null) {
-            return apiFunctions_12.noCurrentPass(res);
-        }
-        const isValid = apiFunctions_6.allowedPassword(req);
-        if (isValid !== true) {
-            return res.status(401).json(isValid);
-        }
-        const passUpdate = yield userAuth.updateOne({ username: req.query.username }, apiFunctions_1.objOmit(req.query, ['username']));
-        if (passUpdate.nModified === 1) {
+        else {
             return res.json({
                 status: 'ok',
                 response: {
-                    message: 'Password updated.',
+                    message: 'Token verified.',
                 },
             });
         }
-        else {
-            return res.status(401).json({
-                status: 'error',
-                response: passUpdate,
-            });
-        }
-    }
-    catch (error) {
-        return res.status(500).json({
-            status: 'error',
-            response: apiFunctions_2.errorObj(error),
-        });
-    }
-}));
-//: Verify Token
-app.all('/verify_token', apiFunctions_14.verifyToken, (req, res) => {
-    if (res.locals.refresh_token != null) {
-        return res.json({
-            status: 'ok',
-            refresh_token: res.locals.refresh_token,
-            response: {
-                message: 'Token verified.',
-            },
-        });
-    }
-    else {
-        return res.json({
-            status: 'ok',
-            response: {
-                message: 'Token verified.',
-            },
-        });
-    }
-});
+    });
+};
 //: Main
 const start = () => __awaiter(void 0, void 0, void 0, function* () {
     yield init();
