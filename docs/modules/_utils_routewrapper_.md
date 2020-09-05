@@ -27,7 +27,7 @@
 
 • **listMethods**: *string[]* = ['set', 'push', 'push_unique']
 
-*Defined in [utils/routeWrapper.ts:5](https://github.com/edmundpf/mongoose-auto-api-rest/blob/de1b96a/src/utils/routeWrapper.ts#L5)*
+*Defined in [utils/routeWrapper.ts:5](https://github.com/edmundpf/mongoose-auto-api-rest/blob/38cb0f7/src/utils/routeWrapper.ts#L5)*
 
 ___
 
@@ -35,7 +35,7 @@ ___
 
 • **listRoutes**: *object* = routes.list
 
-*Defined in [utils/routeWrapper.ts:43](https://github.com/edmundpf/mongoose-auto-api-rest/blob/de1b96a/src/utils/routeWrapper.ts#L43)*
+*Defined in [utils/routeWrapper.ts:43](https://github.com/edmundpf/mongoose-auto-api-rest/blob/38cb0f7/src/utils/routeWrapper.ts#L43)*
 
 #### Type declaration:
 
@@ -55,7 +55,7 @@ ___
 	'schema',
 ]
 
-*Defined in [utils/routeWrapper.ts:7](https://github.com/edmundpf/mongoose-auto-api-rest/blob/de1b96a/src/utils/routeWrapper.ts#L7)*
+*Defined in [utils/routeWrapper.ts:7](https://github.com/edmundpf/mongoose-auto-api-rest/blob/38cb0f7/src/utils/routeWrapper.ts#L7)*
 
 ___
 
@@ -63,7 +63,7 @@ ___
 
 • **normalRoutes**: *object* = routes.normal
 
-*Defined in [utils/routeWrapper.ts:44](https://github.com/edmundpf/mongoose-auto-api-rest/blob/de1b96a/src/utils/routeWrapper.ts#L44)*
+*Defined in [utils/routeWrapper.ts:44](https://github.com/edmundpf/mongoose-auto-api-rest/blob/38cb0f7/src/utils/routeWrapper.ts#L44)*
 
 #### Type declaration:
 
@@ -73,7 +73,7 @@ ___
 
 • **routeMethods**: *string[]* = [...normalMethods, ...listMethods]
 
-*Defined in [utils/routeWrapper.ts:19](https://github.com/edmundpf/mongoose-auto-api-rest/blob/de1b96a/src/utils/routeWrapper.ts#L19)*
+*Defined in [utils/routeWrapper.ts:19](https://github.com/edmundpf/mongoose-auto-api-rest/blob/38cb0f7/src/utils/routeWrapper.ts#L19)*
 
 ___
 
@@ -81,7 +81,7 @@ ___
 
 • **routes**: *object* = getRoutes()
 
-*Defined in [utils/routeWrapper.ts:42](https://github.com/edmundpf/mongoose-auto-api-rest/blob/de1b96a/src/utils/routeWrapper.ts#L42)*
+*Defined in [utils/routeWrapper.ts:42](https://github.com/edmundpf/mongoose-auto-api-rest/blob/38cb0f7/src/utils/routeWrapper.ts#L42)*
 
 #### Type declaration:
 
@@ -95,7 +95,7 @@ ___
 
 ▸ **getRoutes**(): *object*
 
-*Defined in [utils/routeWrapper.ts:23](https://github.com/edmundpf/mongoose-auto-api-rest/blob/de1b96a/src/utils/routeWrapper.ts#L23)*
+*Defined in [utils/routeWrapper.ts:23](https://github.com/edmundpf/mongoose-auto-api-rest/blob/38cb0f7/src/utils/routeWrapper.ts#L23)*
 
 **Returns:** *object*
 
@@ -109,4 +109,4 @@ ___
 
 ### ▪ **appRoutes**: *object*
 
-*Defined in [utils/routeWrapper.ts:45](https://github.com/edmundpf/mongoose-auto-api-rest/blob/de1b96a/src/utils/routeWrapper.ts#L45)*
+*Defined in [utils/routeWrapper.ts:45](https://github.com/edmundpf/mongoose-auto-api-rest/blob/38cb0f7/src/utils/routeWrapper.ts#L45)*
