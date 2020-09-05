@@ -1,2 +1,0 @@
-rest = require('./')
-rest.start()

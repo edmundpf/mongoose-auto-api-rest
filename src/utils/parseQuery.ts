@@ -1,106 +1,78 @@
 //: Parse Query
 
 const parseQuery = (model: any, query: string) => {
-	const mongoOps = [
-		'$eq',
-		'$ne',
-		'$gt',
-		'$gte',
-		'$lt',
-		'$lte',
-		'$in'
-	];
-	const regOps = [
-		'$strt',
-		'$end',
-		'$cont'
-	];
-	const incOps = [
-		'$nin',
-		'$inc',
-		'$ninc'
-	];
-	const allOps = [
-		...mongoOps,
-		...regOps,
-		...incOps,
-	];
+	const mongoOps = ['$eq', '$ne', '$gt', '$gte', '$lt', '$lte', '$in']
+	const regOps = ['$strt', '$end', '$cont']
+	const incOps = ['$nin', '$inc', '$ninc']
+	const allOps = [...mongoOps, ...regOps, ...incOps]
 	let match: any = {
 		$match: {
-			$and: []
-		}
-	};
+			$and: [],
+		},
+	}
 	try {
-		const querySterile: Array<any> = JSON.parse(query);
-		const allFields = Object.keys(model.schema.paths);
-		for (let clauseIndex in querySterile) {
-			let expr;
-			const clause = querySterile[clauseIndex]
+		const querySterile: Array<any> = JSON.parse(query)
+		const allFields = Object.keys(model.schema.paths)
+		for (const clause of querySterile) {
+			let expr
 			if (!allFields.includes(clause.field) || !allOps.includes(clause.op)) {
-				continue;
+				continue
 			}
 			if (mongoOps.includes(clause.op)) {
 				expr = {
 					$expr: {
-						[clause.op]: [
-							`$${clause.field}`,
-							clause.value
-						]
-					}
-				};
+						[clause.op]: [`$${clause.field}`, clause.value],
+					},
+				}
 			} else if (regOps.includes(clause.op)) {
 				expr = {
-					[clause.field]: { $options: 'i' }
+					[clause.field]: { $options: 'i' },
 				}
 				if (clause.op === '$strt') {
-					expr[clause.field].$regex = `^${clause.value}`;
+					expr[clause.field].$regex = `^${clause.value}`
 				} else if (clause.op === '$end') {
-					expr[clause.field].$regex = `${clause.value}$`;
+					expr[clause.field].$regex = `${clause.value}$`
 				} else if (clause.op === '$cont') {
-					expr[clause.field].$regex = clause.value;
+					expr[clause.field].$regex = clause.value
 				}
 			} else if (incOps.includes(clause.op)) {
 				if (clause.op === '$inc') {
 					expr = {
-						[clause.field]:
-						{
+						[clause.field]: {
 							$elemMatch: {
-								$eq: clause.value
-							}
-						}
+								$eq: clause.value,
+							},
+						},
 					}
 				} else if (clause.op === '$ninc') {
 					expr = {
-						[clause.field]:
-						{
+						[clause.field]: {
 							$not: {
 								$elemMatch: {
-									$eq: clause.value
-								}
-							}
-						}
+									$eq: clause.value,
+								},
+							},
+						},
 					}
 				} else if (clause.op === '$nin') {
 					expr = {
-						[clause.field]:
-						{
-							$nin: clause.value
-						}
+						[clause.field]: {
+							$nin: clause.value,
+						},
 					}
 				}
 			}
-			match.$match.$and.push(expr);
+			match.$match.$and.push(expr)
 		}
 		if (match.$match.$and.length === 0) {
-			match =
-				{$match: {}};
+			match = { $match: {} }
 		}
 	} catch (error) {
-		match = {};
+		match = {}
 	}
-	return match;
-};
+	return match
+}
 
 //: Exports
 
-export default parseQuery;
+export default parseQuery

@@ -9,9 +9,5 @@
 	"sslKey": false,
 	"sslCert": false,
 	"sslChain": false,
-	"hiddenFields": [
-		"_id",
-		"uid",
-		"__v"
-	]
+	"hiddenFields": ["_id", "uid", "__v"]
 }

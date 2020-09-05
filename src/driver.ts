@@ -1,2 +1,2 @@
-import rest from './';
-rest.start();
+import rest from './'
+rest.start()

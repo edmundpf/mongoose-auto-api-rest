@@ -1,12 +1,8 @@
-import models from 'mongoose-auto-api.models';
+import models from 'mongoose-auto-api.models'
 
 //: Route Methods
 
-const listMethods = [
-	'set',
-	'push',
-	'push_unique'
-];
+const listMethods = ['set', 'push', 'push_unique']
 
 const normalMethods = [
 	'insert',
@@ -17,42 +13,39 @@ const normalMethods = [
 	'get_all',
 	'find',
 	'sterilize',
-	'schema'
-];
+	'schema',
+]
 
-const routeMethods = [
-	...normalMethods,
-	...listMethods
-];
+const routeMethods = [...normalMethods, ...listMethods]
 
 //: Get Routes
 
 const getRoutes = () => {
-	const listRoutes = {};
-	const normalRoutes = {};
-	for (let key in models) {
-		const model = models[key];
+	const listRoutes = {}
+	const normalRoutes = {}
+	for (const key in models) {
+		const model = models[key]
 		if (model.listFields.length > 0) {
-			listRoutes[model.collectionName] = model;
+			listRoutes[model.collectionName] = model
 		} else {
-			normalRoutes[model.collectionName] = model;
+			normalRoutes[model.collectionName] = model
 		}
 	}
-	return{
+	return {
 		list: listRoutes,
-		normal: normalRoutes
-	};
-};
+		normal: normalRoutes,
+	}
+}
 
 //: Routes
 
-const routes = getRoutes();
-const listRoutes = routes.list;
-const normalRoutes = routes.normal;
+const routes = getRoutes()
+const listRoutes = routes.list
+const normalRoutes = routes.normal
 const appRoutes = {
 	...listRoutes,
-	...normalRoutes
-};
+	...normalRoutes,
+}
 
 //: Exports
 
@@ -63,6 +56,6 @@ export {
 	listMethods,
 	normalMethods,
 	routeMethods,
-};
+}
 
 //::: End Program :::

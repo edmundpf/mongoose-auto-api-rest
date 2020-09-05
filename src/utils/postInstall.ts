@@ -1,13 +1,13 @@
-import fs from 'fs';
-import defaultConfig from '../data/defaultConfig.json';
+import fs from 'fs'
+import defaultConfig from '../data/defaultConfig.json'
 
 try {
 	if (!fs.existsSync('../../models')) {
-		fs.mkdirSync('../../models');
-		console.log('Created models directory.');
+		fs.mkdirSync('../../models')
+		console.log('Created models directory.')
 	}
 } catch (error) {
-	console.log('Could not create models directory.');
+	console.log('Could not create models directory.')
 }
 
 try {
@@ -15,9 +15,9 @@ try {
 		fs.writeFileSync(
 			'../../appConfig.json',
 			JSON.stringify(defaultConfig, null, 2)
-		);
-		console.log('Created config file.');
+		)
+		console.log('Created config file.')
 	}
 } catch (error) {
-	console.log('Could not create config file.');
+	console.log('Could not create config file.')
 }
