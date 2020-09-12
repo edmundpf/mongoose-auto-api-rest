@@ -44,7 +44,7 @@
 
 • **ACCESS_TOKEN**: *string* = ""
 
-*Defined in [tests/test.ts:28](https://github.com/edmundpf/mongoose-auto-api-rest/blob/1e8a07e/src/tests/test.ts#L28)*
+*Defined in [tests/test.ts:28](https://github.com/edmundpf/mongoose-auto-api-rest/blob/1e67b45/src/tests/test.ts#L28)*
 
 ___
 
@@ -52,7 +52,7 @@ ___
 
 • **PASSWORD1**: *"testPass1!"* = "testPass1!"
 
-*Defined in [tests/test.ts:24](https://github.com/edmundpf/mongoose-auto-api-rest/blob/1e8a07e/src/tests/test.ts#L24)*
+*Defined in [tests/test.ts:24](https://github.com/edmundpf/mongoose-auto-api-rest/blob/1e67b45/src/tests/test.ts#L24)*
 
 ___
 
@@ -60,7 +60,7 @@ ___
 
 • **PASSWORD2**: *"testPass2!"* = "testPass2!"
 
-*Defined in [tests/test.ts:25](https://github.com/edmundpf/mongoose-auto-api-rest/blob/1e8a07e/src/tests/test.ts#L25)*
+*Defined in [tests/test.ts:25](https://github.com/edmundpf/mongoose-auto-api-rest/blob/1e67b45/src/tests/test.ts#L25)*
 
 ___
 
@@ -68,7 +68,7 @@ ___
 
 • **SECRET_KEY1**: *"secretKeyTest1!"* = "secretKeyTest1!"
 
-*Defined in [tests/test.ts:26](https://github.com/edmundpf/mongoose-auto-api-rest/blob/1e8a07e/src/tests/test.ts#L26)*
+*Defined in [tests/test.ts:26](https://github.com/edmundpf/mongoose-auto-api-rest/blob/1e67b45/src/tests/test.ts#L26)*
 
 ___
 
@@ -76,7 +76,7 @@ ___
 
 • **SECRET_KEY2**: *"secretKeyTest2!"* = "secretKeyTest2!"
 
-*Defined in [tests/test.ts:27](https://github.com/edmundpf/mongoose-auto-api-rest/blob/1e8a07e/src/tests/test.ts#L27)*
+*Defined in [tests/test.ts:27](https://github.com/edmundpf/mongoose-auto-api-rest/blob/1e67b45/src/tests/test.ts#L27)*
 
 ___
 
@@ -84,7 +84,7 @@ ___
 
 • **USERNAME**: *"user@email.com"* = "user@email.com"
 
-*Defined in [tests/test.ts:23](https://github.com/edmundpf/mongoose-auto-api-rest/blob/1e8a07e/src/tests/test.ts#L23)*
+*Defined in [tests/test.ts:23](https://github.com/edmundpf/mongoose-auto-api-rest/blob/1e67b45/src/tests/test.ts#L23)*
 
 ___
 
@@ -92,7 +92,7 @@ ___
 
 • **api**: *any*
 
-*Defined in [tests/test.ts:18](https://github.com/edmundpf/mongoose-auto-api-rest/blob/1e8a07e/src/tests/test.ts#L18)*
+*Defined in [tests/test.ts:18](https://github.com/edmundpf/mongoose-auto-api-rest/blob/1e67b45/src/tests/test.ts#L18)*
 
 ___
 
@@ -138,7 +138,7 @@ ___
 }\
 `
 
-*Defined in [tests/test.ts:33](https://github.com/edmundpf/mongoose-auto-api-rest/blob/1e8a07e/src/tests/test.ts#L33)*
+*Defined in [tests/test.ts:33](https://github.com/edmundpf/mongoose-auto-api-rest/blob/1e67b45/src/tests/test.ts#L33)*
 
 ___
 
@@ -178,7 +178,7 @@ ___
 }\
 `
 
-*Defined in [tests/test.ts:74](https://github.com/edmundpf/mongoose-auto-api-rest/blob/1e8a07e/src/tests/test.ts#L74)*
+*Defined in [tests/test.ts:74](https://github.com/edmundpf/mongoose-auto-api-rest/blob/1e67b45/src/tests/test.ts#L74)*
 
 ___
 
@@ -186,7 +186,7 @@ ___
 
 • **port**: *any*
 
-*Defined in [tests/test.ts:18](https://github.com/edmundpf/mongoose-auto-api-rest/blob/1e8a07e/src/tests/test.ts#L18)*
+*Defined in [tests/test.ts:18](https://github.com/edmundpf/mongoose-auto-api-rest/blob/1e67b45/src/tests/test.ts#L18)*
 
 ___
 
@@ -226,7 +226,7 @@ ___
 }\
 `
 
-*Defined in [tests/test.ts:55](https://github.com/edmundpf/mongoose-auto-api-rest/blob/1e8a07e/src/tests/test.ts#L55)*
+*Defined in [tests/test.ts:55](https://github.com/edmundpf/mongoose-auto-api-rest/blob/1e67b45/src/tests/test.ts#L55)*
 
 ___
 
@@ -264,7 +264,7 @@ ___
 }\
 `
 
-*Defined in [tests/test.ts:93](https://github.com/edmundpf/mongoose-auto-api-rest/blob/1e8a07e/src/tests/test.ts#L93)*
+*Defined in [tests/test.ts:93](https://github.com/edmundpf/mongoose-auto-api-rest/blob/1e67b45/src/tests/test.ts#L93)*
 
 ___
 
@@ -272,7 +272,7 @@ ___
 
 • **url**: *any*
 
-*Defined in [tests/test.ts:18](https://github.com/edmundpf/mongoose-auto-api-rest/blob/1e8a07e/src/tests/test.ts#L18)*
+*Defined in [tests/test.ts:18](https://github.com/edmundpf/mongoose-auto-api-rest/blob/1e67b45/src/tests/test.ts#L18)*
 
 ## Functions
 
@@ -280,7 +280,7 @@ ___
 
 ▸ **createAssert**(`res`: any): *void*
 
-*Defined in [tests/test.ts:279](https://github.com/edmundpf/mongoose-auto-api-rest/blob/1e8a07e/src/tests/test.ts#L279)*
+*Defined in [tests/test.ts:279](https://github.com/edmundpf/mongoose-auto-api-rest/blob/1e67b45/src/tests/test.ts#L279)*
 
 **Parameters:**
 
@@ -296,7 +296,7 @@ ___
 
 ▸ **errorAssert**(`res`: any, `msg`: any, `args?`: any): *void*
 
-*Defined in [tests/test.ts:193](https://github.com/edmundpf/mongoose-auto-api-rest/blob/1e8a07e/src/tests/test.ts#L193)*
+*Defined in [tests/test.ts:193](https://github.com/edmundpf/mongoose-auto-api-rest/blob/1e67b45/src/tests/test.ts#L193)*
 
 **Parameters:**
 
@@ -314,7 +314,7 @@ ___
 
 ▸ **errorCodeAssert**(`res`: any, `codes`: any): *void*
 
-*Defined in [tests/test.ts:215](https://github.com/edmundpf/mongoose-auto-api-rest/blob/1e8a07e/src/tests/test.ts#L215)*
+*Defined in [tests/test.ts:215](https://github.com/edmundpf/mongoose-auto-api-rest/blob/1e67b45/src/tests/test.ts#L215)*
 
 **Parameters:**
 
@@ -331,7 +331,7 @@ ___
 
 ▸ **findTest**(`field`: any, `op`: any, `value`: any, `valField`: any, `valRes`: any): *Promise‹void›*
 
-*Defined in [tests/test.ts:287](https://github.com/edmundpf/mongoose-auto-api-rest/blob/1e8a07e/src/tests/test.ts#L287)*
+*Defined in [tests/test.ts:287](https://github.com/edmundpf/mongoose-auto-api-rest/blob/1e67b45/src/tests/test.ts#L287)*
 
 **Parameters:**
 
@@ -351,7 +351,7 @@ ___
 
 ▸ **get**(`endpoint`: any, `log`: boolean): *Promise‹any›*
 
-*Defined in [tests/test.ts:175](https://github.com/edmundpf/mongoose-auto-api-rest/blob/1e8a07e/src/tests/test.ts#L175)*
+*Defined in [tests/test.ts:175](https://github.com/edmundpf/mongoose-auto-api-rest/blob/1e67b45/src/tests/test.ts#L175)*
 
 **Parameters:**
 
@@ -368,7 +368,7 @@ ___
 
 ▸ **okayAssert**(`res`: any, `msg`: any, `args?`: any): *void*
 
-*Defined in [tests/test.ts:231](https://github.com/edmundpf/mongoose-auto-api-rest/blob/1e8a07e/src/tests/test.ts#L231)*
+*Defined in [tests/test.ts:231](https://github.com/edmundpf/mongoose-auto-api-rest/blob/1e67b45/src/tests/test.ts#L231)*
 
 **Parameters:**
 
@@ -386,7 +386,7 @@ ___
 
 ▸ **okayExistsAssert**(`res`: any, `fields`: any): *void*
 
-*Defined in [tests/test.ts:253](https://github.com/edmundpf/mongoose-auto-api-rest/blob/1e8a07e/src/tests/test.ts#L253)*
+*Defined in [tests/test.ts:253](https://github.com/edmundpf/mongoose-auto-api-rest/blob/1e67b45/src/tests/test.ts#L253)*
 
 **Parameters:**
 
@@ -403,7 +403,7 @@ ___
 
 ▸ **okayModAssert**(`res`: any, `field`: any, `num`: any): *void*
 
-*Defined in [tests/test.ts:269](https://github.com/edmundpf/mongoose-auto-api-rest/blob/1e8a07e/src/tests/test.ts#L269)*
+*Defined in [tests/test.ts:269](https://github.com/edmundpf/mongoose-auto-api-rest/blob/1e67b45/src/tests/test.ts#L269)*
 
 **Parameters:**
 
@@ -421,7 +421,7 @@ ___
 
 ▸ **post**(`endpoint`: any, `log`: boolean): *Promise‹any›*
 
-*Defined in [tests/test.ts:181](https://github.com/edmundpf/mongoose-auto-api-rest/blob/1e8a07e/src/tests/test.ts#L181)*
+*Defined in [tests/test.ts:181](https://github.com/edmundpf/mongoose-auto-api-rest/blob/1e67b45/src/tests/test.ts#L181)*
 
 **Parameters:**
 
@@ -438,7 +438,7 @@ ___
 
 ▸ **remove**(`endpoint`: any, `log`: boolean): *Promise‹any›*
 
-*Defined in [tests/test.ts:187](https://github.com/edmundpf/mongoose-auto-api-rest/blob/1e8a07e/src/tests/test.ts#L187)*
+*Defined in [tests/test.ts:187](https://github.com/edmundpf/mongoose-auto-api-rest/blob/1e67b45/src/tests/test.ts#L187)*
 
 **Parameters:**
 
@@ -455,7 +455,7 @@ ___
 
 ▸ **request**(`endpoint`: any, `func`: any, `log`: any): *Promise‹any›*
 
-*Defined in [tests/test.ts:148](https://github.com/edmundpf/mongoose-auto-api-rest/blob/1e8a07e/src/tests/test.ts#L148)*
+*Defined in [tests/test.ts:148](https://github.com/edmundpf/mongoose-auto-api-rest/blob/1e67b45/src/tests/test.ts#L148)*
 
 **Parameters:**
 
@@ -473,28 +473,28 @@ Name | Type |
 
 ### ▪ **models**: *object*
 
-*Defined in [tests/test.ts:111](https://github.com/edmundpf/mongoose-auto-api-rest/blob/1e8a07e/src/tests/test.ts#L111)*
+*Defined in [tests/test.ts:111](https://github.com/edmundpf/mongoose-auto-api-rest/blob/1e67b45/src/tests/test.ts#L111)*
 
 ###  ./models/customer.js
 
 • **./models/customer.js**: *string* = customerModel
 
-*Defined in [tests/test.ts:112](https://github.com/edmundpf/mongoose-auto-api-rest/blob/1e8a07e/src/tests/test.ts#L112)*
+*Defined in [tests/test.ts:112](https://github.com/edmundpf/mongoose-auto-api-rest/blob/1e67b45/src/tests/test.ts#L112)*
 
 ###  ./models/info.js
 
 • **./models/info.js**: *string* = infoModel
 
-*Defined in [tests/test.ts:114](https://github.com/edmundpf/mongoose-auto-api-rest/blob/1e8a07e/src/tests/test.ts#L114)*
+*Defined in [tests/test.ts:114](https://github.com/edmundpf/mongoose-auto-api-rest/blob/1e67b45/src/tests/test.ts#L114)*
 
 ###  ./models/product.js
 
 • **./models/product.js**: *string* = productModel
 
-*Defined in [tests/test.ts:113](https://github.com/edmundpf/mongoose-auto-api-rest/blob/1e8a07e/src/tests/test.ts#L113)*
+*Defined in [tests/test.ts:113](https://github.com/edmundpf/mongoose-auto-api-rest/blob/1e67b45/src/tests/test.ts#L113)*
 
 ###  ./models/subDoc.js
 
 • **./models/subDoc.js**: *string* = subDocModel
 
-*Defined in [tests/test.ts:115](https://github.com/edmundpf/mongoose-auto-api-rest/blob/1e8a07e/src/tests/test.ts#L115)*
+*Defined in [tests/test.ts:115](https://github.com/edmundpf/mongoose-auto-api-rest/blob/1e67b45/src/tests/test.ts#L115)*
