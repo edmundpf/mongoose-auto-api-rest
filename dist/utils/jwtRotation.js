@@ -35,6 +35,7 @@ const updateKeyData = (key, preservePrev = false) => {
 // Get Keys
 exports.getKeys = () => {
     const curTime = new Date().getTime() / 1000;
+    store.load();
     for (const key in store.data) {
         if (!store.data[key].k) {
             updateKeyData(key, false);
