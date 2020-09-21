@@ -546,6 +546,14 @@ describe('API Methods', function () {
 		)
 	})
 
+	it('Valid get-all count', async function () {
+		const res = await get('/customer/get_all?record_count=true')
+		return assert.equal(
+			res.status === 'ok' && res.statusCode === 200 && res.response === 1,
+			true
+		)
+	})
+
 	it('Schema info - list fields', async function () {
 		const res = await get('/customer/schema')
 		return assert.equal(
@@ -857,11 +865,17 @@ describe('API Methods', function () {
 		const res = await get(
 			`/customer/find?${query}&from=info&local_field=email&foreign_field=email&as=emailInfo`
 		)
+		const countRes = await get(
+			`/customer/find?${query}&from=info&local_field=email&foreign_field=email&as=emailInfo&record_count=true`
+		)
 		await post('/info/delete_all')
 		return assert.equal(
 			res.status === 'ok' &&
 				res.statusCode === 200 &&
-				res.response[0].emailInfo.location === 'NY',
+				res.response[0].emailInfo.location === 'NY' &&
+				countRes.status === 'ok' &&
+				countRes.statusCode === 200 &&
+				countRes.response === 1,
 			true
 		)
 	})

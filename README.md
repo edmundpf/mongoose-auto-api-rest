@@ -117,6 +117,8 @@ import api from 'mongoose-auto-api.rest'
       - Sort order, -1 for descending, 1 for ascending
     - _record_limit_
       - Number of records to return
+    - _record_count_
+      - Returns document count if true
     - _skip_
       - Number of records to skip
   - Success: `[{attributes...}, {}...]`
@@ -145,6 +147,10 @@ import api from 'mongoose-auto-api.rest'
       - Sort order, -1 for descending, 1 for ascending
     - param - _record_limit_
       - Number of records to return
+    - param - _record_count_
+      - Returns document count if true
+    - param - _skip_
+      - Number of records to skip
   - joins collections
     - param - _from_
       - collection to join
@@ -170,6 +176,8 @@ import api from 'mongoose-auto-api.rest'
   - Codebase converted from Coffeescript -> Typescript
 - v2.0.2
   - Automatic JWT Rotation w/ JWK kid claims
+- v2.0.7
+  - Retrieve document count in get_all and find, lean optimizations
 
 ## Documentation
 

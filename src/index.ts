@@ -189,12 +189,7 @@ const startServer = () => {
 			//: Insert
 
 			if (req.params.method === 'insert') {
-				return await responseFormat(
-					model.create.bind(model),
-					[req.query],
-					req,
-					res
-				)
+				return await responseFormat(model.create.bind(model), [req.query], res)
 
 				//: Update
 			} else if (req.params.method === 'update') {
@@ -206,7 +201,6 @@ const startServer = () => {
 						},
 						updateQuery(req, primaryKey),
 					],
-					req,
 					res
 				)
 
@@ -219,18 +213,12 @@ const startServer = () => {
 							[primaryKey]: req.query[primaryKey],
 						},
 					],
-					req,
 					res
 				)
 
 				//: Delete All
 			} else if (req.params.method === 'delete_all') {
-				return await responseFormat(
-					model.deleteMany.bind(model),
-					[{}],
-					req,
-					res
-				)
+				return await responseFormat(model.deleteMany.bind(model), [{}], res)
 
 				//: Get
 			} else if (req.params.method === 'get') {
@@ -241,8 +229,9 @@ const startServer = () => {
 							[primaryKey]: req.query[primaryKey],
 						},
 					],
-					req,
-					res
+					res,
+					true,
+					true
 				)
 
 				//: Get All
@@ -250,10 +239,13 @@ const startServer = () => {
 				sortArgs = parseDataSort(req.query, false)
 
 				return await responseFormat(
-					model.find.bind(model),
+					String(req.query.record_count) != 'true'
+						? model.find.bind(model)
+						: model.countDocuments.bind(model),
 					[{}, null, sortArgs],
-					req,
-					res
+					res,
+					true,
+					true
 				)
 
 				//: Find
@@ -293,14 +285,15 @@ const startServer = () => {
 				return await responseFormat(
 					model.aggregate.bind(model),
 					aggArgs,
-					req,
 					res,
-					false
+					false,
+					false,
+					String(req.query.record_count) == 'true'
 				)
 
 				//: Get Schema Info
 			} else if (req.params.method === 'schema') {
-				return await responseFormat(schemaAsync, [modelInfo], req, res)
+				return await responseFormat(schemaAsync, [modelInfo], res)
 
 				//: Sterilize: removes fields not in schema, sets all query fields to specified value for all docs
 			} else if (req.params.method === 'sterilize') {
@@ -346,7 +339,6 @@ const startServer = () => {
 							strict: false,
 						},
 					],
-					req,
 					res
 				)
 			}
@@ -393,7 +385,6 @@ const startServer = () => {
 								$push: updateDict,
 							},
 						],
-						req,
 						res
 					)
 
@@ -409,7 +400,6 @@ const startServer = () => {
 								$addToSet: updateDict,
 							},
 						],
-						req,
 						res
 					)
 
@@ -425,7 +415,6 @@ const startServer = () => {
 								$set: updateDict,
 							},
 						],
-						req,
 						res
 					)
 				}
@@ -437,9 +426,11 @@ const startServer = () => {
 
 	app.all('/login', async (req, res) => {
 		try {
-			const user = await userAuth.findOne({
-				username: req.query.username,
-			})
+			const user = await userAuth
+				.findOne({
+					username: req.query.username,
+				})
+				.lean()
 			if (user) {
 				const passMatch = await bcrypt.compare(
 					req.query.password,
@@ -553,9 +544,11 @@ const startServer = () => {
 
 	app.all('/update_password', async (req, res) => {
 		try {
-			const user = await userAuth.findOne({
-				username: req.query.username,
-			})
+			const user = await userAuth
+				.findOne({
+					username: req.query.username,
+				})
+				.lean()
 
 			if (user && req.query.current_password != null) {
 				const passMatch = await bcrypt.compare(

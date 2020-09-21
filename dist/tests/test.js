@@ -485,6 +485,14 @@ describe('API Methods', function () {
                 res.response[0].name === 'bob', true);
         });
     });
+    it('Valid get-all count', function () {
+        return __awaiter(this, void 0, void 0, function* () {
+            const res = yield get('/customer/get_all?record_count=true');
+            return chai_1.assert.equal(res.status === 'ok' &&
+                res.statusCode === 200 &&
+                res.response === 1, true);
+        });
+    });
     it('Schema info - list fields', function () {
         return __awaiter(this, void 0, void 0, function* () {
             const res = yield get('/customer/schema');
@@ -742,10 +750,14 @@ describe('API Methods', function () {
             query = new URLSearchParams({ where: JSON.stringify(query) });
             yield post('/info/insert?email=master@email.com&location=NY');
             const res = yield get(`/customer/find?${query}&from=info&local_field=email&foreign_field=email&as=emailInfo`);
+            const countRes = yield get(`/customer/find?${query}&from=info&local_field=email&foreign_field=email&as=emailInfo&record_count=true`);
             yield post('/info/delete_all');
             return chai_1.assert.equal(res.status === 'ok' &&
                 res.statusCode === 200 &&
-                res.response[0].emailInfo.location === 'NY', true);
+                res.response[0].emailInfo.location === 'NY' &&
+                countRes.status === 'ok' &&
+                countRes.statusCode === 200 &&
+                countRes.response === 1, true);
         });
     });
     it('Valid find w/ no records found', function () {

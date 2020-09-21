@@ -144,17 +144,21 @@ const allowedSecretKey = (req) => {
 
 // Response/Error JSON
 
-const responseFormat = async (method, args, req, res, spreadArgs = true) => {
+const responseFormat = async (
+	method,
+	args,
+	res,
+	spreadArgs = true,
+	lean = false,
+	count = false
+) => {
 	let response
 	try {
-		if (spreadArgs) {
-			response = await method(...args)
-		} else {
-			response = await method(args)
-		}
+		response = spreadArgs ? method(...args) : method(args)
+		response = lean ? await response.lean() : await response
 		const retJson: any = {
 			status: 'ok',
-			response,
+			response: count && Array.isArray(response) ? response.length : response,
 		}
 		if (res.locals.refresh_token != null) {
 			retJson.refresh_token = res.locals.refresh_token

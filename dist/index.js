@@ -164,7 +164,7 @@ const startServer = () => {
         }
         //: Insert
         if (req.params.method === 'insert') {
-            return yield apiFunctions_8.responseFormat(model.create.bind(model), [req.query], req, res);
+            return yield apiFunctions_8.responseFormat(model.create.bind(model), [req.query], res);
             //: Update
         }
         else if (req.params.method === 'update') {
@@ -173,7 +173,7 @@ const startServer = () => {
                     [primaryKey]: req.query[primaryKey],
                 },
                 apiFunctions_5.updateQuery(req, primaryKey),
-            ], req, res);
+            ], res);
             //: Delete
         }
         else if (req.params.method === 'delete') {
@@ -181,11 +181,11 @@ const startServer = () => {
                 {
                     [primaryKey]: req.query[primaryKey],
                 },
-            ], req, res);
+            ], res);
             //: Delete All
         }
         else if (req.params.method === 'delete_all') {
-            return yield apiFunctions_8.responseFormat(model.deleteMany.bind(model), [{}], req, res);
+            return yield apiFunctions_8.responseFormat(model.deleteMany.bind(model), [{}], res);
             //: Get
         }
         else if (req.params.method === 'get') {
@@ -193,12 +193,14 @@ const startServer = () => {
                 {
                     [primaryKey]: req.query[primaryKey],
                 },
-            ], req, res);
+            ], res, true, true);
             //: Get All
         }
         else if (req.params.method === 'get_all') {
             sortArgs = apiFunctions_3.parseDataSort(req.query, false);
-            return yield apiFunctions_8.responseFormat(model.find.bind(model), [{}, null, sortArgs], req, res);
+            return yield apiFunctions_8.responseFormat(String(req.query.record_count) != 'true'
+                ? model.find.bind(model)
+                : model.countDocuments.bind(model), [{}, null, sortArgs], res, true, true);
             //: Find
         }
         else if (req.params.method === 'find') {
@@ -232,11 +234,11 @@ const startServer = () => {
             else {
                 aggArgs = [parseQuery_1.default(model, req.query.where), ...sortArgs];
             }
-            return yield apiFunctions_8.responseFormat(model.aggregate.bind(model), aggArgs, req, res, false);
+            return yield apiFunctions_8.responseFormat(model.aggregate.bind(model), aggArgs, res, false, false, String(req.query.record_count) == 'true');
             //: Get Schema Info
         }
         else if (req.params.method === 'schema') {
-            return yield apiFunctions_8.responseFormat(apiFunctions_4.schemaAsync, [modelInfo], req, res);
+            return yield apiFunctions_8.responseFormat(apiFunctions_4.schemaAsync, [modelInfo], res);
             //: Sterilize: removes fields not in schema, sets all query fields to specified value for all docs
         }
         else if (req.params.method === 'sterilize') {
@@ -274,7 +276,7 @@ const startServer = () => {
                     multi: true,
                     strict: false,
                 },
-            ], req, res);
+            ], res);
         }
     }));
     //: List Routes
@@ -307,7 +309,7 @@ const startServer = () => {
                     {
                         $push: updateDict,
                     },
-                ], req, res);
+                ], res);
                 //: Push Unique
             }
             else if (req.params.method === 'push_unique') {
@@ -318,7 +320,7 @@ const startServer = () => {
                     {
                         $addToSet: updateDict,
                     },
-                ], req, res);
+                ], res);
                 //: Set
             }
             else if (req.params.method === 'set') {
@@ -329,16 +331,18 @@ const startServer = () => {
                     {
                         $set: updateDict,
                     },
-                ], req, res);
+                ], res);
             }
         }
     }));
     //: Login
     app.all('/login', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         try {
-            const user = yield userAuth.findOne({
+            const user = yield userAuth
+                .findOne({
                 username: req.query.username,
-            });
+            })
+                .lean();
             if (user) {
                 const passMatch = yield bcrypt_1.default.compare(req.query.password, user.password);
                 if (!passMatch) {
@@ -442,9 +446,11 @@ const startServer = () => {
     //: Update Password
     app.all('/update_password', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         try {
-            const user = yield userAuth.findOne({
+            const user = yield userAuth
+                .findOne({
                 username: req.query.username,
-            });
+            })
+                .lean();
             if (user && req.query.current_password != null) {
                 const passMatch = yield bcrypt_1.default.compare(req.query.current_password, user.password);
                 if (!passMatch) {

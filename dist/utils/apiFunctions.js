@@ -149,18 +149,14 @@ const allowedSecretKey = (req) => {
 exports.allowedSecretKey = allowedSecretKey;
 //::: RESPONSE FUNCTIONS :::
 // Response/Error JSON
-const responseFormat = (method, args, req, res, spreadArgs = true) => __awaiter(void 0, void 0, void 0, function* () {
+const responseFormat = (method, args, res, spreadArgs = true, lean = false, count = false) => __awaiter(void 0, void 0, void 0, function* () {
     let response;
     try {
-        if (spreadArgs) {
-            response = yield method(...args);
-        }
-        else {
-            response = yield method(args);
-        }
+        response = spreadArgs ? method(...args) : method(args);
+        response = lean ? yield response.lean() : yield response;
         const retJson = {
             status: 'ok',
-            response,
+            response: count && Array.isArray(response) ? response.length : response,
         };
         if (res.locals.refresh_token != null) {
             retJson.refresh_token = res.locals.refresh_token;

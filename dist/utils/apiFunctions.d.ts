@@ -24,7 +24,7 @@ declare const allowedSecretKey: (req: any) => true | {
     status: string;
     response: any;
 };
-declare const responseFormat: (method: any, args: any, req: any, res: any, spreadArgs?: boolean) => Promise<any>;
+declare const responseFormat: (method: any, args: any, res: any, spreadArgs?: boolean, lean?: boolean, count?: boolean) => Promise<any>;
 declare const incorrectSecretKey: (res: any) => any;
 declare const incorrectUserOrPass: (res: any) => any;
 declare const userNotFound: (res: any) => any;
