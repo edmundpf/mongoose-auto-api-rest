@@ -14,7 +14,7 @@
 
 ▸ **parseQuery**(`model`: any, `query`: string): *any*
 
-*Defined in [utils/parseQuery.ts:3](https://github.com/edmundpf/mongoose-auto-api-rest/blob/1e67b45/src/utils/parseQuery.ts#L3)*
+*Defined in [utils/parseQuery.ts:3](https://github.com/edmundpf/mongoose-auto-api-rest/blob/a7a36b3/src/utils/parseQuery.ts#L3)*
 
 **Parameters:**
 
